@@ -22,58 +22,95 @@ def main():
     # 2. LLM Provider
     print("\n--- AI Model ---")
     print("Choose your LLM provider:\n")
-    print("  1. Gemini (recommended, free tier available)")
-    print("     → Free: 1,500 requests/day, no credit card needed")
-    print("     → Get key: https://aistudio.google.com/apikey\n")
-    print("  2. OpenRouter (100+ models, some free)")
-    print("     → Free models: Gemini Flash, Llama, Mistral")
-    print("     → Get key: https://openrouter.ai/keys\n")
-    print("  3. OpenAI (gpt-4o-mini ~$0.5/mo)")
-    print("     → Get key: https://platform.openai.com/api-keys\n")
-    print("  4. Ollama (100% free, runs locally)")
-    print("     → Install: https://ollama.com")
-    print("     → Then: ollama pull llama3.1:8b\n")
 
-    choice = input("Select provider [1]: ").strip() or "1"
+    providers = [
+        ("gemini", "Gemini", "Free tier: 1,500 req/day, no credit card"),
+        ("openrouter", "OpenRouter", "100+ models from all providers, some free"),
+        ("openai", "OpenAI", "GPT-4o, GPT-4o-mini"),
+        ("anthropic", "Anthropic", "Claude Opus 4.6, Sonnet 4.6, Haiku 4.5"),
+        ("ollama", "Ollama", "100% free, runs locally on your machine"),
+    ]
 
-    provider_map = {"1": "gemini", "2": "openrouter", "3": "openai", "4": "ollama"}
-    provider = provider_map.get(choice, "gemini")
+    for i, (_, name, desc) in enumerate(providers, 1):
+        print(f"  {i}. {name:14s} — {desc}")
 
-    default_models = {
-        "gemini": "gemini-2.5-flash",
-        "openrouter": "google/gemini-2.5-flash-preview-05-20:free",
-        "openai": "gpt-4o-mini",
-        "ollama": "llama3.1:8b",
+    choice = input("\nSelect provider [1]: ").strip() or "1"
+    idx = int(choice) - 1 if choice.isdigit() and 1 <= int(choice) <= len(providers) else 0
+    provider = providers[idx][0]
+
+    # Model selection per provider
+    model_options = {
+        "gemini": [
+            ("gemini-2.5-flash", "recommended, fast & free"),
+            ("gemini-2.5-pro", "higher quality, paid"),
+        ],
+        "openrouter": [
+            ("google/gemini-2.5-flash-preview-05-20:free", "free, recommended"),
+            ("meta-llama/llama-4-maverick:free", "free"),
+            ("mistralai/mistral-small-3.1-24b-instruct:free", "free"),
+            ("qwen/qwen3-235b-a22b:free", "free"),
+            ("anthropic/claude-sonnet-4", "~$3/mo"),
+            ("anthropic/claude-haiku-4-5", "~$0.3/mo"),
+            ("openai/gpt-4o-mini", "~$0.5/mo"),
+            ("openai/gpt-4o", "~$5/mo"),
+        ],
+        "openai": [
+            ("gpt-4o-mini", "recommended, ~$0.5/mo"),
+            ("gpt-4o", "higher quality, ~$5/mo"),
+            ("gpt-4.1-mini", "latest mini"),
+            ("gpt-4.1", "latest"),
+        ],
+        "anthropic": [
+            ("claude-haiku-4-5-20251001", "fast & cheap, ~$0.3/mo"),
+            ("claude-sonnet-4-5-20250514", "balanced, ~$3/mo"),
+            ("claude-opus-4-6-20250610", "most capable, ~$15/mo"),
+        ],
+        "ollama": [
+            ("llama3.1:8b", "recommended, 4.7GB"),
+            ("llama3.1:70b", "high quality, 40GB"),
+            ("qwen2.5:7b", "good multilingual"),
+            ("mistral:7b", "fast"),
+        ],
     }
 
-    config["llm"] = {"provider": provider}
+    models = model_options.get(provider, [])
+    if models:
+        print(f"\nAvailable models:")
+        for i, (model_id, desc) in enumerate(models, 1):
+            print(f"  {i}. {model_id} ({desc})")
+        print(f"  {len(models) + 1}. Custom model name")
+
+        mchoice = input(f"\nSelect model [1]: ").strip() or "1"
+        midx = int(mchoice) - 1 if mchoice.isdigit() and 1 <= int(mchoice) <= len(models) else 0
+
+        if mchoice.isdigit() and int(mchoice) == len(models) + 1:
+            model = input("Enter model name: ").strip()
+        elif 0 <= midx < len(models):
+            model = models[midx][0]
+        else:
+            model = models[0][0]
+    else:
+        model = input("Enter model name: ").strip()
+
+    config["llm"] = {"provider": provider, "model": model}
+
+    # API key
+    api_key_urls = {
+        "gemini": ("https://aistudio.google.com/apikey", "Free tier: 1,500 requests/day — more than enough"),
+        "openrouter": ("https://openrouter.ai/keys", "Free models require no payment — just sign up"),
+        "openai": ("https://platform.openai.com/api-keys", ""),
+        "anthropic": ("https://console.anthropic.com/settings/keys", ""),
+    }
 
     if provider == "ollama":
-        print(f"\nDefault model: {default_models['ollama']}")
-        model = input(f"Model name [{default_models['ollama']}]: ").strip()
-        if model:
-            config["llm"]["model"] = model
-        print("No API key needed for Ollama.")
+        print("\nNo API key needed for Ollama.")
         print("Make sure Ollama is running: ollama serve")
     else:
-        if provider == "gemini":
-            print(f"\nGet your free API key at: https://aistudio.google.com/apikey")
-            print("(Free tier: 1,500 requests/day — more than enough)")
-        elif provider == "openrouter":
-            print(f"\nGet your API key at: https://openrouter.ai/keys")
-            print("Free models available — no payment needed")
-            print(f"\nPopular free models:")
-            print("  google/gemini-2.5-flash-preview-05-20:free (recommended)")
-            print("  meta-llama/llama-3.3-70b-instruct:free")
-            print("  mistralai/mistral-small-3.1-24b-instruct:free")
-            model = input(f"\nModel [{default_models['openrouter']}]: ").strip()
-            if model:
-                config["llm"]["model"] = model
-        elif provider == "openai":
-            print(f"\nGet your API key at: https://platform.openai.com/api-keys")
-
+        url, note = api_key_urls[provider]
+        print(f"\nGet your API key at: {url}")
+        if note:
+            print(f"({note})")
         api_key = input("API Key: ").strip()
-
         env_key = "GEMINI_API_KEY" if provider == "gemini" else "LLM_API_KEY"
         env[env_key] = api_key
 

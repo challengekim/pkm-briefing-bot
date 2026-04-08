@@ -166,6 +166,7 @@ class Config:
         return {
             "gemini": "gemini-2.5-flash",
             "openai": "gpt-4o-mini",
+            "anthropic": "claude-haiku-4-5-20251001",
             "openrouter": "google/gemini-2.5-flash-preview-05-20:free",
             "ollama": "llama3.1:8b",
         }.get(provider, "gemini-2.5-flash")

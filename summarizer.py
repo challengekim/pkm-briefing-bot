@@ -32,6 +32,9 @@ class Summarizer:
         if self._provider == "gemini":
             from google import genai
             self._client = genai.Client(api_key=self._api_key)
+        elif self._provider == "anthropic":
+            from anthropic import Anthropic
+            self._client = Anthropic(api_key=self._api_key)
         else:
             # OpenAI-compatible: openai, openrouter, ollama
             from openai import OpenAI
@@ -66,6 +69,13 @@ class Summarizer:
                     model=self._model, contents=prompt
                 )
                 return response.text
+            elif self._provider == "anthropic":
+                response = client.messages.create(
+                    model=self._model,
+                    max_tokens=4096,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return response.content[0].text
             else:
                 # OpenAI-compatible API
                 response = client.chat.completions.create(

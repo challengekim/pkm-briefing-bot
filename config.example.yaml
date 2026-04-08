@@ -5,17 +5,19 @@
 language: ko  # ko | en — controls AI prompt language
 
 # LLM Provider — choose one:
-#   gemini    — Google Gemini (free tier: 1,500 req/day)
-#   openrouter — 100+ models via OpenRouter (some free)
-#   openai   — OpenAI (gpt-4o-mini ~$0.5/mo)
-#   ollama   — Local models (100% free, requires Ollama installed)
+#   gemini     — Google Gemini (free tier: 1,500 req/day)
+#   openrouter — 100+ models from all providers (some free)
+#   openai     — OpenAI GPT models
+#   anthropic  — Anthropic Claude models
+#   ollama     — Local models (100% free, requires Ollama)
 llm:
   provider: gemini
-  # model: gemini-2.5-flash          # default for gemini
-  # model: google/gemini-2.5-flash-preview-05-20:free  # default for openrouter (free)
-  # model: gpt-4o-mini               # default for openai
-  # model: llama3.1:8b               # default for ollama
-  # base_url: http://localhost:11434/v1  # only needed for ollama or custom endpoints
+  # model: gemini-2.5-flash                              # gemini (default)
+  # model: google/gemini-2.5-flash-preview-05-20:free    # openrouter free
+  # model: gpt-4o-mini                                   # openai
+  # model: claude-haiku-4-5-20251001                     # anthropic
+  # model: llama3.1:8b                                   # ollama
+  # base_url: http://localhost:11434/v1                  # ollama or custom
 
 # language_patterns: (auto-detected from language setting — usually no need to change)
 # action_required: regex to extract action items from AI output
