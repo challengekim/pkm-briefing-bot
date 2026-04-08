@@ -65,19 +65,36 @@ This bot is one piece of a larger knowledge management system. Here's what each 
 
 ### Inspirations and Sources
 
-This system combines ideas from online sources we found, studied, and implemented:
+This system combines ideas from open-source projects, articles, and frameworks we found online:
 
-| Concept | Source | How We Applied It |
-|---------|--------|-------------------|
-| **LLM Wiki** | [Karpathy's X post](https://x.com/karpathy/status/2039805659525644595) — LLM compiles .md wiki, not RAG | Implemented via OMC `/wiki` skill. 119 articles auto-indexed with cross-references |
-| **Autoresearch** | [autoimprove-cc](https://github.com/learnbydoingai/autoimprove-cc) — Karpathy's autoresearch for skills | Implemented via OMC `/skill-eval`. Skills auto-evaluate and self-improve on failure |
-| **Compound Knowledge** | [retn.kr](https://retn.kr/blog/compound-learning-ai-system/) — Episodic memory + 4-stage loop | Implemented as weekly report continuity: each week receives last week's report as input |
-| **Building a Second Brain** | Tiago Forte — Capture, Organize, Distill, Express | `/save` captures + auto-categorizes; bot distills and expresses via briefings |
-| **Zettelkasten** | Niklas Luhmann — Interconnected notes | Tag co-occurrence analysis finds real connections between notes |
-| **GTD** | David Allen — Capture action items, not hold them | Regex extraction of action items from every email/meeting summary |
-| **LLM OS** | Andrej Karpathy — LLM as operating system layer | AI runs as background cron infrastructure, not a chatbot |
+**Frameworks:**
 
-> **Note**: Features 6-8 in the Claude Code companion layer (LLM Wiki, Autoresearch, Learning System) require [Claude Code](https://claude.ai/claude-code) with the [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode) plugin. The bot itself (features 1-5) works independently.
+| Framework | Author | How We Applied It |
+|-----------|--------|-------------------|
+| Building a Second Brain | Tiago Forte — CODE method (Capture→Organize→Distill→Express) | `/save` captures + auto-categorizes; bot distills and expresses via briefings |
+| Zettelkasten | Niklas Luhmann — Interconnected note system | Tag co-occurrence analysis finds real connections between notes programmatically |
+| Getting Things Done | David Allen — Externalize action items | Regex extraction of action items from every email/meeting summary |
+
+**Open-Source Projects:**
+
+| Project | Repo | How We Applied It |
+|---------|------|-------------------|
+| **Karpathy's autoresearch** | [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — Automated research via LLM mutation loops | The core idea: evaluate output → mutate → re-evaluate → repeat until quality threshold. Applied to skill improvement |
+| **autoimprove-cc** | [VoidLight00/autoimprove-cc](https://github.com/VoidLight00/autoimprove-cc) — autoresearch for Claude Code SKILL.md | Binary assertion evals + git commit on improvement. Adapted for `/skill-eval` |
+| **autoresearch-skill** | [olelehmann100kMRR/autoresearch-skill](https://github.com/olelehmann100kMRR/autoresearch-skill) — 857 stars | 3-6 binary evals, one mutation at a time, 95%+ target. Informed our eval design |
+| **Last30Days** | [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) — 9-platform trend research | 30-day cross-platform convergence detection. Inspired our trend digest pipeline |
+| **oh-my-claudecode** | [nicobailarew/oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode) — Multi-agent orchestration | Provides `/wiki`, `/skill-eval`, `/save`, `/learn` skills used in the companion layer |
+| **gstack** | [garrytan/gstack](https://github.com/garrytan/gstack) — AI development toolkit by Garry Tan | QA testing, deployment, code review workflows |
+
+**Articles:**
+
+| Article | Author | Key Idea |
+|---------|--------|----------|
+| [LLM Knowledge Bases](https://x.com/karpathy/status/2039805659525644595) | Andrej Karpathy | LLM compiles raw data into .md wiki (not RAG). Obsidian as frontend |
+| [LLM Wiki 구축 가이드](https://gist.github.com/unclejobs-ai/7af4a9e3446751b8e2c3bc66d23fa0ac) | unclejobs-ai | Practical implementation guide for Karpathy's LLM wiki pattern |
+| [복리 지식 시스템](https://retn.kr/blog/compound-learning-ai-system/) | Simpson Gyusup Sim | Episodic memory + 4-stage loop (collect→structure→contextualize→auto-apply) |
+
+> **Note**: The bot itself (features 1-5) works independently. The Claude Code companion layer (LLM Wiki, Autoresearch, Learning System) requires [Claude Code](https://claude.ai/claude-code) with [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode).
 
 ### What We Took From Each Tool — and What We Changed
 

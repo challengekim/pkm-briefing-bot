@@ -67,19 +67,36 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 
 ### 영감을 준 소스들
 
-이 시스템은 온라인에서 찾아서 공부하고 조합·적용한 아이디어들입니다:
+온라인에서 찾아서 공부하고 조합·적용한 오픈소스 프로젝트, 아티클, 프레임워크입니다:
 
-| 개념 | 출처 | 적용 방법 |
-|------|------|----------|
-| **LLM Wiki** | [Karpathy X 포스트](https://x.com/karpathy/status/2039805659525644595) — RAG 대신 LLM이 .md 위키 컴파일 | OMC `/wiki` 스킬로 구현. 119개 아티클 자동 인덱싱 + 상호 참조 |
-| **Autoresearch** | [autoimprove-cc](https://github.com/learnbydoingai/autoimprove-cc) — Karpathy autoresearch를 스킬에 적용 | OMC `/skill-eval`로 구현. 스킬 실패 시 자동 평가 + 자기 수정 |
-| **복리 지식** | [retn.kr](https://retn.kr/blog/compound-learning-ai-system/) — 에피소딕 메모리 + 4단계 루프 | 주간 리포트 연속성으로 구현: 매주 지난주 리포트를 입력받아 누적 분석 |
-| **BASB** | Tiago Forte — Capture, Organize, Distill, Express | `/save`가 캡처+분류, 봇이 증류+표현 |
-| **제텔카스텐** | Niklas Luhmann — 상호 연결된 노트 | 태그 공통점 분석으로 노트 간 실제 연결 발견 |
-| **GTD** | David Allen — 액션 아이템 캡처 | 이메일/미팅 요약에서 정규식으로 액션 자동 추출 |
-| **LLM OS** | Andrej Karpathy — LLM을 운영체제 레이어로 | AI가 백그라운드 크론 인프라로 동작 |
+**프레임워크:**
 
-> **참고**: Claude Code 동반 레이어(LLM Wiki, Autoresearch, Learning System)는 [Claude Code](https://claude.ai/claude-code) + [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode) 플러그인이 필요합니다. 봇 자체(1-5)는 독립 실행됩니다.
+| 프레임워크 | 저자 | 적용 방법 |
+|-----------|------|----------|
+| Building a Second Brain | Tiago Forte — CODE (Capture→Organize→Distill→Express) | `/save`가 캡처+분류, 봇이 증류+표현 |
+| 제텔카스텐 | Niklas Luhmann — 상호 연결된 노트 시스템 | 태그 공통점 분석으로 노트 간 실제 연결을 프로그래밍적으로 발견 |
+| GTD | David Allen — 액션 아이템 외부화 | 이메일/미팅 요약에서 정규식으로 액션 자동 추출 |
+
+**오픈소스 프로젝트:**
+
+| 프로젝트 | 레포 | 적용 방법 |
+|---------|------|----------|
+| **Karpathy autoresearch** | [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — LLM 변이 루프로 자동 연구 | 핵심 아이디어: 평가→변이→재평가→반복. 스킬 자기개선에 적용 |
+| **autoimprove-cc** | [VoidLight00/autoimprove-cc](https://github.com/VoidLight00/autoimprove-cc) — Claude Code SKILL.md용 autoresearch | Binary assertion 평가 + 개선 시 git commit. `/skill-eval`에 적용 |
+| **autoresearch-skill** | [olelehmann100kMRR/autoresearch-skill](https://github.com/olelehmann100kMRR/autoresearch-skill) — 857 stars | 3-6개 binary eval, 한번에 하나만 변이, 95%+ 목표. 평가 설계에 참고 |
+| **Last30Days** | [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) — 9개 플랫폼 트렌드 리서치 | 30일간 크로스 플랫폼 수렴 감지. 트렌드 다이제스트 파이프라인에 영감 |
+| **oh-my-claudecode** | [nicobailarew/oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode) — 멀티 에이전트 오케스트레이션 | `/wiki`, `/skill-eval`, `/save`, `/learn` 스킬 제공 |
+| **gstack** | [garrytan/gstack](https://github.com/garrytan/gstack) — Garry Tan의 AI 개발 툴킷 | QA 테스트, 배포, 코드 리뷰 워크플로우 |
+
+**아티클:**
+
+| 글 | 저자 | 핵심 아이디어 |
+|----|------|-------------|
+| [LLM Knowledge Bases](https://x.com/karpathy/status/2039805659525644595) | Andrej Karpathy | LLM이 raw 데이터를 .md 위키로 컴파일 (RAG 아님). Obsidian을 프론트엔드로 |
+| [LLM Wiki 구축 가이드](https://gist.github.com/unclejobs-ai/7af4a9e3446751b8e2c3bc66d23fa0ac) | unclejobs-ai | Karpathy LLM 위키 패턴의 실전 구현 가이드 |
+| [복리 지식 시스템](https://retn.kr/blog/compound-learning-ai-system/) | Simpson Gyusup Sim | 에피소딕 메모리 + 4단계 루프 (수집→구조화→맥락부여→자동적용) |
+
+> **참고**: 봇 자체(1-5)는 독립 실행됩니다. Claude Code 동반 레이어(LLM Wiki, Autoresearch, Learning System)는 [Claude Code](https://claude.ai/claude-code) + [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode)가 필요합니다.
 
 ### 각 도구에서 뭘 가져왔고, 뭘 바꿨나
 
