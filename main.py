@@ -13,7 +13,7 @@ from calendar_client import CalendarClient
 from config import Config
 from gmail_client import GmailClient
 from email_sender import EmailSender
-from knowledge_scanner import save_project_ideas, scan_all_notes, scan_recent_notes
+from knowledge_scanner import analyze_tag_connections, load_previous_weekly_report, save_project_ideas, save_weekly_report, scan_all_notes, scan_recent_notes
 from meta_reviewer import collect_monthly_stats
 from summarizer import Summarizer
 from telegram_sender import TelegramSender
@@ -408,8 +408,22 @@ def process_weekly_knowledge():
         logger.info("No knowledge notes this week — skipping report")
         return
 
+    # Compound learning: load previous week's report
+    previous_report = ""
+    if config.vault_path:
+        previous_report = load_previous_weekly_report(config.vault_path)
+
+    # Tag co-occurrence analysis
+    tag_data = analyze_tag_connections(notes)
+    tag_analysis_parts = []
+    for conn in tag_data["connections"]:
+        tag_analysis_parts.append(f"- \"{conn['note1']}\" ↔ \"{conn['note2']}\" (공통 태그: {', '.join(conn['shared_tags'])})")
+    for tag, titles in tag_data["popular_tags"]:
+        tag_analysis_parts.append(f"- 태그 '{tag}': {', '.join(titles[:3])}{'...' if len(titles) > 3 else ''}")
+    tag_analysis = "\n".join(tag_analysis_parts) if tag_analysis_parts else ""
+
     knowledge_summary = summarizer.summarize_weekly_knowledge(
-        notes, config.project_context
+        notes, config.project_context, previous_report=previous_report, tag_analysis=tag_analysis,
     )
 
     message = compose_weekly_knowledge(
@@ -438,14 +452,23 @@ def process_weekly_knowledge():
         except Exception as e:
             logger.error(f"Knowledge email failed: {e}")
 
+    # Save weekly report for compound learning
+    if knowledge_summary and config.vault_path:
+        try:
+            now = datetime.now(KST)
+            save_weekly_report(config.vault_path, knowledge_summary, now.strftime("%Y-%m-%d"))
+        except Exception as e:
+            logger.error(f"Weekly report save failed: {e}")
+
     # Save project ideas to Obsidian
-    if knowledge_summary and config.obsidian_vault_path:
+    if knowledge_summary and config.vault_path:
         try:
             now = datetime.now(KST)
             save_project_ideas(
-                config.obsidian_vault_path,
+                config.vault_path,
                 knowledge_summary,
                 now.strftime("%Y-%m-%d"),
+                ideas_file=config.ideas_file,
             )
         except Exception as e:
             logger.error(f"Project ideas save failed: {e}")

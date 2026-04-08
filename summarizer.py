@@ -170,16 +170,19 @@ class Summarizer:
         )
         return self._generate(prompt)
 
-    def summarize_weekly_knowledge(self, notes, project_context=""):
+    def summarize_weekly_knowledge(self, notes, project_context="", previous_report="", tag_analysis=""):
         """Summarize this week's saved knowledge notes into a compound learning report."""
         notes_text = "\n".join(
             f"- [{n['category']}] {n['title']}: {n['description']}"
             for n in notes[:30]
         )
+        prev = previous_report if previous_report else ("없음" if self.lang == "ko" else "None (first week)")
         prompt = self._load_prompt("weekly_knowledge").format(
             note_count=len(notes),
             notes_text=notes_text,
             project_context=project_context,
+            previous_report=prev,
+            tag_connections=tag_analysis if tag_analysis else ("없음" if self.lang == "ko" else "None"),
         )
         return self._generate(prompt)
 

@@ -30,7 +30,7 @@ def _git_commits_since(repo_path, days=30):
 
 def collect_monthly_stats(config, days=30):
     """Collect comprehensive stats for the monthly meta review."""
-    vault = config.obsidian_vault_path
+    vault = config.vault_path
     cutoff = datetime.now(KST) - timedelta(days=days)
 
     # 1. Scan all notes from last 30 days

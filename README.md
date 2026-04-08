@@ -37,13 +37,13 @@ Tiago Forte's framework for personal knowledge management follows four stages: C
 
 Niklas Luhmann wrote 70 books and 400 papers using a system of interconnected notes. The power wasn't in individual notes but in the connections between them.
 
-The weekly knowledge compounding report does what Luhmann did manually -- it discovers connections between notes you didn't see yourself. "These 3 articles share a common theme about X." The monthly meta-review tracks whether your knowledge collection has blind spots.
+The weekly knowledge report uses tag co-occurrence analysis to find real connections between notes -- notes sharing 2+ tags are surfaced as linked pairs. The AI then builds on these programmatic connections to discover deeper thematic patterns across your vault.
 
 #### 3. Compound Learning (Farnam Street)
 
 Shane Parrish's insight: knowledge compounds like interest, but only if you actively review and connect it. Most people save articles and never look at them again.
 
-The weekly knowledge report doesn't just list what you saved. It finds patterns, suggests project applications, and recommends what to explore next. Each week builds on the last.
+The weekly knowledge report doesn't just list what you saved. It receives the previous week's report as input, finds patterns, and tracks how themes evolve over time. Each week's analysis explicitly references and builds on the last -- cumulative learning trends emerge naturally across weeks.
 
 #### 4. Getting Things Done (GTD)
 
@@ -64,7 +64,7 @@ Save content --> AI summarizes --> Weekly patterns emerge --> Project ideas gene
      +-------- Monthly meta-review diagnoses the system itself <----+
 ```
 
-The meta-review is the key innovation: **the system improves itself**. It tracks what categories you're neglecting, which sources produce noise vs. insight, and whether AI-suggested ideas actually turn into code commits.
+The meta-review diagnoses the system: what categories you're neglecting, which sources produce noise vs. insight, and whether AI-suggested ideas actually turned into code commits (tracked via structured idea status: proposed → implemented | abandoned).
 
 ### Cost Comparison
 

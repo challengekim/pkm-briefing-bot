@@ -73,7 +73,8 @@ class Config:
         # Vault
         vault = cfg.get("vault", {})
         vault_path = os.getenv("VAULT_PATH") or vault.get("path", "")
-        self.obsidian_vault_path = os.path.expanduser(vault_path) if vault_path else ""
+        self.vault_path = os.path.expanduser(vault_path) if vault_path else ""
+        self.obsidian_vault_path = self.vault_path  # backward compat alias
         self.knowledge_scan_paths = vault.get("scan_paths", [])
         self.ideas_file = vault.get("ideas_file", "20_Projects/AI Ideas/project-ideas.md")
 
