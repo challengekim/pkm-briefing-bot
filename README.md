@@ -53,9 +53,21 @@ David Allen's core principle: your brain is for having ideas, not holding them. 
 
 Andrej Karpathy's vision of LLMs as an operating system layer for human work. This bot treats AI not as a chatbot you query, but as infrastructure that works in the background -- it reads your emails, scans your vault, writes your LinkedIn posts, and diagnoses its own performance.
 
-### What's Different Here
+### What We Took From Each Tool — and What We Changed
 
-Existing tools (Readwise, Notion AI, Feedly) each solve one piece. This system connects them into a **closed feedback loop**:
+| Tool / Method | What It Does Well | What's Missing | How This Bot Improves It |
+|--------------|-------------------|----------------|--------------------------|
+| **Readwise** ($8/mo) | Syncs highlights, spaced repetition review | Passive — you still review manually, no cross-note analysis | Weekly report auto-reviews everything, finds patterns you missed, suggests project applications |
+| **Notion AI** ($10/mo) | Summarizes individual notes | No cross-note connections, no temporal tracking | Tag co-occurrence analysis links related notes; previous week's report feeds into this week |
+| **Feedly / Inoreader** ($6/mo) | Aggregates RSS feeds | Raw firehose — no curation, no personal context | AI curates 5-7 key stories, filtered by your project context |
+| **Obsidian + Dataview** (free) | PKM vault with queries | Manual tagging, manual review, no automation | Same vault format — but scanning, summarizing, and connecting are automated |
+| **Zapier / Make** ($20+/mo) | Connects SaaS tools | Visual builder, limited AI, per-action pricing | Python scheduler — unlimited runs, full LLM integration, $0 infra cost |
+| **Morning Brew / TLDR** (free) | Curated newsletters | Generic — same content for everyone | Your subscriptions only, summarized with your project context |
+| **ChatGPT / Claude chat** (free-$20) | Answers questions on demand | Pull-based — you have to ask; no memory across sessions | Push-based — briefings arrive automatically; weekly reports remember last week |
+
+### The Compound Learning Loop
+
+Existing tools are **one-way pipes**: content goes in, summary comes out, done. This system connects them into a **feedback loop where each week builds on the last**:
 
 ```
 Save content --> AI summarizes --> Weekly patterns emerge --> Project ideas generated
@@ -65,6 +77,12 @@ Save content --> AI summarizes --> Weekly patterns emerge --> Project ideas gene
 ```
 
 The meta-review diagnoses the system: what categories you're neglecting, which sources produce noise vs. insight, and whether AI-suggested ideas actually turned into code commits (tracked via structured idea status: proposed → implemented | abandoned).
+
+**How compound learning actually works in this system:**
+1. Week 1: Save 10 articles → AI finds 3 themes → suggests 2 project ideas
+2. Week 2: Save 8 articles → AI receives Week 1's report → notices "AI agents" theme persists from last week → deeper analysis on that thread → new ideas build on Week 1's suggestions
+3. Week 3: Tag analysis connects Week 1 and Week 3 notes via shared tags → AI traces a 3-week evolution of your interests → cumulative trend section shows where your learning is heading
+4. Month-end: Meta-review checks which of the 6 suggested ideas actually became git commits → reports 33% conversion rate → suggests focusing on the themes that led to action
 
 ### Cost Comparison
 
