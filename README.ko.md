@@ -8,13 +8,10 @@
 
 ## 이 시스템이 하는 일
 
-1. **콘텐츠 캡처** -- `/save <URL>` 한 줄로 웹 글을 저장. AI가 추출, 분류, 태그, 요약, 적용 포인트까지 자동 생성.
-2. **모닝 브리핑** -- 오늘 일정 + 뉴스레터 요약 + 주요 이메일 + 액션 아이템 자동 추출.
-3. **트렌드 다이제스트** -- Hacker News, Reddit AI, GeekNews에서 수집한 기사를 AI가 5~7개로 큐레이션.
-4. **LinkedIn 초안** -- vault 노트 + 트렌드를 조합해 AI가 포스트 초안 작성. 수정 후 바로 게시.
-5. **이브닝 리뷰** -- 오후 이메일 요약 + 내일 일정 미리보기.
-6. **주간 지식 컴파운딩** -- 이번 주 저장한 노트의 패턴을 발견하고, 프로젝트별 아이디어를 생성.
-7. **월간 메타 리뷰** -- 시스템이 스스로를 진단: 수집 편향, 아이디어→코드 전환율, 개선 제안.
+1. **트렌드 다이제스트** -- Hacker News, Reddit AI, GeekNews에서 수집한 기사를 AI가 5~7개로 큐레이션.
+2. **LinkedIn 초안** -- vault 노트 + 트렌드를 조합해 AI가 포스트 초안 작성. 수정 후 바로 게시.
+3. **주간 지식 컴파운딩** -- 이번 주 저장한 노트의 패턴을 발견하고, 프로젝트별 아이디어를 생성.
+4. **월간 메타 리뷰** -- 시스템이 스스로를 진단: 수집 편향, 아이디어→코드 전환율, 개선 제안.
 
 ---
 
@@ -30,8 +27,8 @@
 
 - **Capture**: `/save`가 웹 콘텐츠를 AI 요약과 함께 구조화
 - **Organize**: vault 폴더에 주제별 자동 분류
-- **Distill**: Gemini가 뉴스레터, 트렌드, 축적된 지식을 증류
-- **Express**: LinkedIn 초안 생성, 주간 리포트, 이메일 다이제스트
+- **Distill**: Gemini가 트렌드와 축적된 지식을 증류
+- **Express**: LinkedIn 초안 생성, 주간 리포트
 
 #### 2. 제텔카스텐 (Niklas Luhmann의 메모 상자)
 
@@ -45,15 +42,9 @@
 
 대부분의 사람은 글을 저장하고 다시 보지 않습니다. 주간 리포트는 **지난주 리포트를 입력받아** 패턴을 발견하고, 테마 변화를 추적하고, 프로젝트 아이디어를 제안합니다. 매주 분석이 이전 주 위에 실제로 쌓이는 구조입니다.
 
-#### 4. Getting Things Done (GTD -- David Allen)
+#### 4. AI-Native 지식 작업 (Karpathy의 LLM OS 개념)
 
-"뇌는 아이디어를 만드는 곳이지, 저장하는 곳이 아니다."
-
-모든 이메일 요약과 미팅 준비 노트에서 액션 아이템이 자동 추출됩니다. 모닝 브리핑이 "오늘 해야 할 일"을 직접 인박스를 뒤지지 않아도 보여줍니다.
-
-#### 5. AI-Native 지식 작업 (Karpathy의 LLM OS 개념)
-
-Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**로 사용. 이 봇은 AI를 질문하는 대상이 아니라 백그라운드에서 작동하는 인프라로 취급합니다 — 이메일을 읽고, vault를 스캔하고, LinkedIn 포스트를 쓰고, 자신의 성능을 진단합니다.
+Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**로 사용. 이 봇은 AI를 질문하는 대상이 아니라 백그라운드에서 작동하는 인프라로 취급합니다 — vault를 스캔하고, LinkedIn 포스트를 쓰고, 자신의 성능을 진단합니다.
 
 ### 전체 생태계 구성
 
@@ -75,7 +66,6 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 |-----------|------|----------|
 | Building a Second Brain | Tiago Forte — CODE (Capture→Organize→Distill→Express) | `/save`가 캡처+분류, 봇이 증류+표현 |
 | 제텔카스텐 | Niklas Luhmann — 상호 연결된 노트 시스템 | 태그 공통점 분석으로 노트 간 실제 연결을 프로그래밍적으로 발견 |
-| GTD | David Allen — 액션 아이템 외부화 | 이메일/미팅 요약에서 정규식으로 액션 자동 추출 |
 
 **오픈소스 프로젝트:**
 
@@ -96,7 +86,7 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 | [LLM Wiki 구축 가이드](https://gist.github.com/unclejobs-ai/7af4a9e3446751b8e2c3bc66d23fa0ac) | unclejobs-ai | Karpathy LLM 위키 패턴의 실전 구현 가이드 |
 | [복리 지식 시스템](https://retn.kr/blog/compound-learning-ai-system/) | Simpson Gyusup Sim | 에피소딕 메모리 + 4단계 루프 (수집→구조화→맥락부여→자동적용) |
 
-> **참고**: 봇 자체(1-5)는 독립 실행됩니다. Claude Code 동반 레이어(LLM Wiki, Autoresearch, Learning System)는 [Claude Code](https://claude.ai/claude-code) + [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode)가 필요합니다.
+> **참고**: 봇 자체(1-4)는 독립 실행됩니다. Claude Code 동반 레이어(LLM Wiki, Autoresearch, Learning System)는 [Claude Code](https://claude.ai/claude-code) + [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode)가 필요합니다.
 
 ### 각 도구에서 뭘 가져왔고, 뭘 바꿨나
 
@@ -107,7 +97,6 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 | **Feedly / Inoreader** ($6/월) | RSS 피드 수집 | 그냥 나열, 개인 맥락 없음 | AI가 5~7개 핵심 이슈 큐레이션, 내 프로젝트 맥락 기반 필터링 |
 | **Obsidian + Dataview** (무료) | PKM vault + 쿼리 | 수동 태깅, 수동 리뷰 | 같은 vault 형식 — 스캔, 요약, 연결을 자동화 |
 | **Zapier / Make** ($20+/월) | SaaS 연결 자동화 | 비쥬얼 빌더, 제한된 AI, 액션당 과금 | Python 스케줄러 — 무제한 실행, LLM 통합, 인프라 비용 $0 |
-| **Morning Brew / TLDR** (무료) | 큐레이션 뉴스레터 | 누구에게나 같은 콘텐츠 | 내가 구독하는 뉴스레터만, 내 프로젝트 맥락으로 요약 |
 | **ChatGPT / Claude 채팅** (무료~$20) | 질문하면 답변 | Pull 방식 — 물어봐야 함, 세션 간 기억 없음 | Push 방식 — 브리핑이 자동 도착; 주간 리포트가 지난주를 기억 |
 
 ### 복리 학습 루프
@@ -151,27 +140,24 @@ git clone https://github.com/challengekim/pkm-briefing-bot
 cd pkm-briefing-bot
 pip install -r requirements.txt
 python3 setup_wizard.py
-python3 main.py --test morning
+python3 main.py --test trend
 ```
 
 ### 방법 2: 수동 설정
 
 1. `config.example.yaml`을 `config.yaml`로 복사하고 값을 채우세요
 2. `.env.example`을 `.env`로 복사하고 API 키를 넣으세요
-3. `python3 setup_oauth.py --account personal` 실행 (Gmail/Calendar 연동)
-4. 테스트: `python3 main.py --test morning`
+3. 테스트: `python3 main.py --test trend`
 
 ### 방법 3: Docker
 
 ```bash
-# 먼저 로컬에서 인증 설정:
+# 먼저 로컬에서 설정:
 python3 setup_wizard.py
 
 # Docker로 실행:
 docker-compose up -d
 ```
-
-> **참고**: OAuth2는 초기 로그인에 브라우저가 필요합니다. `setup_wizard.py`를 로컬에서 먼저 실행한 후, Docker는 생성된 `.env` 파일을 사용합니다.
 
 ---
 
@@ -181,8 +167,8 @@ docker-compose up -d
 
 | 파일 | 내용 | 예시 |
 |-----|------|-----|
-| `config.yaml` | 시크릿 외 모든 설정 | 스케줄, 뉴스레터 발신자, 프로젝트, vault 경로 |
-| `.env` | 시크릿만 | API 키, OAuth 토큰 |
+| `config.yaml` | 시크릿 외 모든 설정 | 스케줄, 프로젝트, vault 경로 |
+| `.env` | 시크릿만 | API 키, 봇 토큰 |
 
 전체 옵션은 [`config.example.yaml`](config.example.yaml)을 참조하세요.
 
@@ -192,11 +178,8 @@ docker-compose up -d
 
 | 종류 | 스케줄 | 하는 일 |
 |-----|--------|--------|
-| 모닝 | 매일 08:00 | 오늘 일정 + 이메일 요약 + 미팅 준비 + 액션 아이템 |
 | 트렌드 | 매일 10:00 | HN, Reddit AI, GeekNews 큐레이션 |
 | LinkedIn | 매일 11:30 | vault 노트 + 트렌드로 AI 포스트 초안 |
-| 이브닝 | 매일 17:00 | 오후 이메일 요약 + 내일 일정 |
-| 주간 | 금 18:00 | 주간 회고: 미팅, 이메일, 다음 주 미리보기 |
 | 지식 | 토 10:00 | 복리 학습: 이번 주 노트 패턴 + 프로젝트 아이디어 |
 | 메타 리뷰 | 매월 1일 | 시스템 자기진단: 수집 패턴, 아이디어→코드 추적 |
 
@@ -212,8 +195,7 @@ config.yaml + .env
    config.py          <-- 설정 로더
        |
    +---+----------------------------+
-   |  gmail_client    calendar_client|  <-- 데이터 수집
-   |  trend_fetcher   knowledge_scanner|
+   |  trend_fetcher   knowledge_scanner|  <-- 데이터 수집
    +---+----------------------------+
        |
    summarizer.py      <-- AI 처리 (Gemini)
@@ -222,9 +204,7 @@ config.yaml + .env
        |
    briefing_composer.py   <-- 포매팅 (순수 HTML)
        |
-   +---+---+
-   |       |
-telegram  email       <-- 전달
+   telegram_sender.py    <-- 전달
 ```
 
 ---
@@ -242,7 +222,6 @@ telegram  email       <-- 전달
 - Python 3.9+
 - Gemini API 키 ([무료 티어 가능](https://aistudio.google.com/apikey))
 - Telegram 봇 ([무료, 2분이면 생성](https://core.telegram.org/bots#botfather))
-- Google OAuth2 (선택사항, 이메일/캘린더 기능용)
 
 ---
 
@@ -301,7 +280,7 @@ bash install.sh
 - 새로운 브리핑 타입
 - `prompts/en/` 및 `prompts/ko/` 프롬프트 개선
 - 추가 트렌드 소스
-- 대체 전달 채널 (Slack, Discord, 이메일 전용)
+- 대체 전달 채널 (Slack, Discord)
 
 ---
 

@@ -19,11 +19,6 @@ llm:
   # model: llama3.1:8b                                   # ollama
   # base_url: http://localhost:11434/v1                  # ollama or custom
 
-# language_patterns: (auto-detected from language setting — usually no need to change)
-# action_required: regex to extract action items from AI output
-# none_value: sentinel value meaning "none" in AI output
-# Defaults: ko → "액션 필요" / "없음", en → "Action Required" / "None"
-
 vault:
   path: ~/Documents/my-knowledge
   scan_paths:
@@ -35,28 +30,10 @@ vault:
     - 00_Inbox/Read Later
   ideas_file: "20_Projects/AI Ideas/project-ideas.md"
 
-accounts:
-  personal:
-    display_name: "Personal"
-    newsletter_senders:
-      - "Lenny"
-      - "Superhuman"
-  work:
-    display_name: "Work"
-    label: "important"
-    skip_keywords:
-      - "OTP"
-      - "verification"
-      - "password reset"
-      - "unsubscribe"
-
 projects:
   - name: "My Project"
     description: "Brief description of what this project does"
     repo_path: ~/projects/my-project
-
-notifications:
-  email_to: you@example.com
 
 trends:
   subreddits: [artificial, MachineLearning, LocalLLaMA, singularity, ChatGPT]
@@ -66,10 +43,7 @@ trends:
 
 schedule:
   timezone: Asia/Seoul
-  morning: "08:00"
   trend: "10:00"
   linkedin: "11:30"
-  evening: "17:00"
-  weekly: "fri 18:00"
   knowledge: "sat 10:00"
   meta: "1st 11:00"

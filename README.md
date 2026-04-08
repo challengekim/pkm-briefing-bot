@@ -8,13 +8,10 @@
 
 ## What This Does
 
-1. **Content Capture** -- Save any web link with `/save <URL>`. AI extracts, categorizes, tags, and summarizes it into your vault.
-2. **Morning Briefing** -- Daily digest of today's calendar, newsletter summaries, important emails, and auto-extracted action items.
-3. **Trend Digest** -- Curated top stories from Hacker News, Reddit AI, and GeekNews, filtered by relevance to your projects.
-4. **LinkedIn Draft** -- AI-generated post from your recent notes and trends, ready to edit and publish.
-5. **Evening Review** -- Afternoon email catch-up and tomorrow's schedule preview.
-6. **Weekly Knowledge Compounding** -- Cross-references everything you saved this week, discovers patterns, and generates project ideas.
-7. **Monthly Meta-Review** -- The system diagnoses itself: collection blind spots, idea-to-code conversion rates, and improvement suggestions.
+1. **Trend Digest** -- Curated top stories from Hacker News, Reddit AI, and GeekNews, filtered by relevance to your projects.
+2. **LinkedIn Draft** -- AI-generated post from your recent notes and trends, ready to edit and publish.
+3. **Weekly Knowledge Compounding** -- Cross-references everything you saved this week, discovers patterns, and generates project ideas.
+4. **Monthly Meta-Review** -- The system diagnoses itself: collection blind spots, idea-to-code conversion rates, and improvement suggestions.
 
 ---
 
@@ -30,8 +27,8 @@ Tiago Forte's framework for personal knowledge management follows four stages: C
 
 - **Capture**: `/save` extracts and structures web content with AI-generated summaries
 - **Organize**: Auto-categorization into vault folders by topic
-- **Distill**: Gemini AI summarizes newsletters, trends, and accumulated knowledge
-- **Express**: LinkedIn draft generation, weekly reports, email digests
+- **Distill**: Gemini AI summarizes trends and accumulated knowledge
+- **Express**: LinkedIn draft generation, weekly reports
 
 #### 2. Zettelkasten (Luhmann's Slip-Box)
 
@@ -45,13 +42,9 @@ Shane Parrish's insight: knowledge compounds like interest, but only if you acti
 
 The weekly knowledge report doesn't just list what you saved. It receives the previous week's report as input, finds patterns, and tracks how themes evolve over time. Each week's analysis explicitly references and builds on the last -- cumulative learning trends emerge naturally across weeks.
 
-#### 4. Getting Things Done (GTD)
+#### 4. AI-Native Knowledge Work (Karpathy's LLM OS)
 
-David Allen's core principle: your brain is for having ideas, not holding them. Action items are automatically extracted from every email summary and meeting prep note. The morning briefing surfaces "what needs doing today" without you having to process your inbox manually.
-
-#### 5. AI-Native Knowledge Work (Karpathy's LLM OS)
-
-Andrej Karpathy's vision of LLMs as an operating system layer for human work. This bot treats AI not as a chatbot you query, but as infrastructure that works in the background -- it reads your emails, scans your vault, writes your LinkedIn posts, and diagnoses its own performance.
+Andrej Karpathy's vision of LLMs as an operating system layer for human work. This bot treats AI not as a chatbot you query, but as infrastructure that works in the background -- it scans your vault, writes your LinkedIn posts, and diagnoses its own performance.
 
 ### The Full Ecosystem
 
@@ -73,7 +66,6 @@ This system combines ideas from open-source projects, articles, and frameworks w
 |-----------|--------|-------------------|
 | Building a Second Brain | Tiago Forte — CODE method (Capture→Organize→Distill→Express) | `/save` captures + auto-categorizes; bot distills and expresses via briefings |
 | Zettelkasten | Niklas Luhmann — Interconnected note system | Tag co-occurrence analysis finds real connections between notes programmatically |
-| Getting Things Done | David Allen — Externalize action items | Regex extraction of action items from every email/meeting summary |
 
 **Open-Source Projects:**
 
@@ -94,7 +86,7 @@ This system combines ideas from open-source projects, articles, and frameworks w
 | [LLM Wiki 구축 가이드](https://gist.github.com/unclejobs-ai/7af4a9e3446751b8e2c3bc66d23fa0ac) | unclejobs-ai | Practical implementation guide for Karpathy's LLM wiki pattern |
 | [복리 지식 시스템](https://retn.kr/blog/compound-learning-ai-system/) | Simpson Gyusup Sim | Episodic memory + 4-stage loop (collect→structure→contextualize→auto-apply) |
 
-> **Note**: The bot itself (features 1-5) works independently. The Claude Code companion layer (LLM Wiki, Autoresearch, Learning System) requires [Claude Code](https://claude.ai/claude-code) with [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode).
+> **Note**: The bot itself (features 1-4) works independently. The Claude Code companion layer (LLM Wiki, Autoresearch, Learning System) requires [Claude Code](https://claude.ai/claude-code) with [oh-my-claudecode](https://github.com/nicobailarew/oh-my-claudecode).
 
 ### What We Took From Each Tool — and What We Changed
 
@@ -105,7 +97,6 @@ This system combines ideas from open-source projects, articles, and frameworks w
 | **Feedly / Inoreader** ($6/mo) | Aggregates RSS feeds | Raw firehose — no curation, no personal context | AI curates 5-7 key stories, filtered by your project context |
 | **Obsidian + Dataview** (free) | PKM vault with queries | Manual tagging, manual review, no automation | Same vault format — but scanning, summarizing, and connecting are automated |
 | **Zapier / Make** ($20+/mo) | Connects SaaS tools | Visual builder, limited AI, per-action pricing | Python scheduler — unlimited runs, full LLM integration, $0 infra cost |
-| **Morning Brew / TLDR** (free) | Curated newsletters | Generic — same content for everyone | Your subscriptions only, summarized with your project context |
 | **ChatGPT / Claude chat** (free-$20) | Answers questions on demand | Pull-based — you have to ask; no memory across sessions | Push-based — briefings arrive automatically; weekly reports remember last week |
 
 ### The Compound Learning Loop
@@ -149,15 +140,14 @@ git clone https://github.com/challengekim/pkm-briefing-bot
 cd pkm-briefing-bot
 pip install -r requirements.txt
 python3 setup_wizard.py
-python3 main.py --test morning
+python3 main.py --test trend
 ```
 
 ### Option 2: Manual Setup
 
 1. Copy `config.example.yaml` to `config.yaml` and fill in your values
 2. Copy `.env.example` to `.env` and add your API keys
-3. Run `python3 setup_oauth.py --account personal` for Gmail/Calendar access
-4. Test: `python3 main.py --test morning`
+3. Test: `python3 main.py --test trend`
 
 ### Option 3: Docker
 
@@ -169,8 +159,6 @@ python3 setup_wizard.py
 docker-compose up -d
 ```
 
-> **Note**: OAuth2 requires a browser for the initial login. Run `setup_wizard.py` locally first, then Docker uses the generated `.env` file.
-
 ---
 
 ## Configuration
@@ -179,8 +167,8 @@ All configuration lives in two files:
 
 | File | Contains | Example |
 |------|----------|---------|
-| `config.yaml` | Everything except secrets | Schedule times, newsletter senders, projects, vault path |
-| `.env` | Secrets only | API keys, OAuth tokens |
+| `config.yaml` | Everything except secrets | Schedule times, projects, vault path |
+| `.env` | Secrets only | API keys, bot tokens |
 
 See [`config.example.yaml`](config.example.yaml) for all options with comments.
 
@@ -190,11 +178,8 @@ See [`config.example.yaml`](config.example.yaml) for all options with comments.
 
 | Type | Schedule | What It Does |
 |------|----------|-------------|
-| Morning | Daily 08:00 | Today's calendar + email summaries + meeting prep + action items |
 | Trend | Daily 10:00 | Top stories from HN, Reddit AI, GeekNews -- curated by AI |
 | LinkedIn | Daily 11:30 | AI-drafted post from your vault notes + trends |
-| Evening | Daily 17:00 | Afternoon email summaries + tomorrow's schedule |
-| Weekly | Fri 18:00 | Week in review: meetings, emails, next week preview |
 | Knowledge | Sat 10:00 | Compound learning: patterns across saved notes + project ideas |
 | Meta Review | 1st of month | System self-diagnosis: collection patterns, idea-to-code tracking |
 
@@ -210,8 +195,7 @@ config.yaml + .env
    config.py          <-- Configuration loader
        |
    +---+----------------------------+
-   |  gmail_client    calendar_client|  <-- Data Collection
-   |  trend_fetcher   knowledge_scanner|
+   |  trend_fetcher   knowledge_scanner|  <-- Data Collection
    +---+----------------------------+
        |
    summarizer.py      <-- AI Processing (Gemini)
@@ -220,17 +204,15 @@ config.yaml + .env
        |
    briefing_composer.py   <-- Formatting (pure HTML)
        |
-   +---+---+
-   |       |
-telegram  email       <-- Delivery
+   telegram_sender.py    <-- Delivery
 ```
 
 ### Data Flow
 
-1. **Collect**: Clients fetch data from Gmail, Calendar, HN/Reddit, and the vault
+1. **Collect**: Fetchers gather data from HN/Reddit and the vault
 2. **Summarize**: Gemini processes raw data using prompt templates (language-specific)
 3. **Compose**: Pure formatting module renders HTML -- no API calls, no side effects
-4. **Deliver**: Telegram for real-time alerts, email for weekly/monthly reports
+4. **Deliver**: Telegram for real-time briefings
 
 ---
 
@@ -247,7 +229,6 @@ See [`vault_template/`](vault_template/) for the expected folder structure.
 - Python 3.9+
 - Gemini API key ([free tier available](https://aistudio.google.com/apikey))
 - Telegram bot ([free, 2 minutes to create](https://core.telegram.org/bots#botfather))
-- Google OAuth2 credentials (optional, for email/calendar features)
 
 ---
 
@@ -308,7 +289,7 @@ Contributions welcome! Areas where help is needed:
 - New briefing types
 - Prompt improvements in `prompts/en/` and `prompts/ko/`
 - Additional trend sources
-- Alternative delivery channels (Slack, Discord, email-only)
+- Alternative delivery channels (Slack, Discord)
 
 ---
 

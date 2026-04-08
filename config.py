@@ -21,12 +21,6 @@ class Config:
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
         self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
         self.telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
-        self.personal_gmail_refresh_token = os.getenv("PERSONAL_GMAIL_REFRESH_TOKEN", "")
-        self.work_gmail_refresh_token = os.getenv("WORK_GMAIL_REFRESH_TOKEN", "")
-        self.google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
-        self.google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "")
-        self.personal_calendar_id = os.getenv("PERSONAL_CALENDAR_ID", "primary")
-        self.work_calendar_id = os.getenv("WORK_CALENDAR_ID", "primary")
 
         # LLM
         llm = cfg.get("llm", {})
@@ -37,30 +31,6 @@ class Config:
 
         # Language
         self.language = cfg.get("language", "ko")
-        patterns = cfg.get("language_patterns", {})
-        lang_defaults = {
-            "ko": {
-                "action_required": r"\*\*액션 필요\*\*:\s*(.+?)(?:\n|$)",
-                "none_value": "없음",
-            },
-            "en": {
-                "action_required": r"\*\*Action Required\*\*:\s*(.+?)(?:\n|$)",
-                "none_value": "None",
-            },
-        }
-        defaults = lang_defaults.get(self.language, lang_defaults["ko"])
-        self.action_pattern = patterns.get("action_required", defaults["action_required"])
-        self.none_value = patterns.get("none_value", defaults["none_value"])
-
-        # Accounts
-        accounts = cfg.get("accounts", {})
-        personal = accounts.get("personal", {})
-        work = accounts.get("work", {})
-        self.personal_display_name = personal.get("display_name", "개인")
-        self.work_display_name = work.get("display_name", "회사")
-        self.personal_senders = personal.get("newsletter_senders", [])
-        self.work_label = work.get("label", "국내외BD")
-        self.work_skip_keywords = work.get("skip_keywords", [])
 
         # Projects
         projects_list = cfg.get("projects", [])
@@ -77,10 +47,6 @@ class Config:
         self.obsidian_vault_path = self.vault_path  # backward compat alias
         self.knowledge_scan_paths = vault.get("scan_paths", [])
         self.ideas_file = vault.get("ideas_file", "20_Projects/AI Ideas/project-ideas.md")
-
-        # Notifications
-        notifications = cfg.get("notifications", {})
-        self.knowledge_email_to = notifications.get("email_to", "")
 
         # Trends
         trends = cfg.get("trends", {})

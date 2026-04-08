@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Interactive setup wizard for PKM Briefing Bot."""
 
-import json
 import os
-import subprocess
 import sys
 
 
@@ -127,28 +125,7 @@ def main():
     chat_id = input("Chat ID: ").strip()
     env["TELEGRAM_CHAT_ID"] = chat_id
 
-    # 4. Google OAuth2 (optional)
-    print("\n--- Google OAuth2 (optional, for email/calendar) ---")
-    setup_google = input("Set up Gmail/Calendar integration? (y/n) [n]: ").strip().lower()
-    if setup_google == "y":
-        print("\nPrerequisites:")
-        print("1. Go to https://console.cloud.google.com")
-        print("2. Create a project, enable Gmail API and Calendar API")
-        print("3. Create OAuth2 Desktop credentials")
-        print("4. Download client_secret.json to this directory")
-        input("\nPress Enter when client_secret.json is ready...")
-
-        if os.path.exists("client_secret.json"):
-            for account in ["personal", "work"]:
-                setup_account = input(f"\nSet up {account} account? (y/n) [n]: ").strip().lower()
-                if setup_account == "y":
-                    print(f"Running OAuth flow for {account}...")
-                    subprocess.run([sys.executable, "setup_oauth.py", "--account", account])
-        else:
-            print("client_secret.json not found. Skipping OAuth setup.")
-            print("You can run 'python setup_oauth.py --account personal' later.")
-
-    # 5. Vault path
+    # 4. Vault path
     print("\n--- Knowledge Vault ---")
     print("Where do you store your markdown notes?")
     vault = input("Vault path [./vault]: ").strip() or "./vault"
@@ -172,28 +149,7 @@ def main():
         shutil.copytree("vault_template", vault)
         print(f"Created vault structure at {vault}")
 
-    # 6. Newsletter senders
-    print("\n--- Newsletter Senders ---")
-    print("Enter newsletter sender names (one per line, empty line to finish):")
-    senders = []
-    while True:
-        s = input("  > ").strip()
-        if not s:
-            break
-        senders.append(s)
-    config["accounts"] = {
-        "personal": {
-            "display_name": "Personal" if lang == "en" else "개인",
-            "newsletter_senders": senders or ["Lenny", "Superhuman"],
-        },
-        "work": {
-            "display_name": "Work" if lang == "en" else "회사",
-            "label": input("\nWork email label [important]: ").strip() or "important",
-            "skip_keywords": ["OTP", "verification", "password reset", "unsubscribe"],
-        },
-    }
-
-    # 7. Projects
+    # 5. Projects
     print("\n--- Your Projects ---")
     print("Enter projects (empty name to finish):")
     projects = []
@@ -209,26 +165,18 @@ def main():
         projects.append(p)
     config["projects"] = projects or [{"name": "My Project", "description": "Description"}]
 
-    # 8. Notifications
-    email_to = input("\nEmail for weekly reports (optional): ").strip()
-    if email_to:
-        config["notifications"] = {"email_to": email_to}
-
-    # 9. Schedule
+    # 6. Schedule
     print("\n--- Schedule ---")
     tz = input("Timezone [Asia/Seoul]: ").strip() or "Asia/Seoul"
     config["schedule"] = {
         "timezone": tz,
-        "morning": "08:00",
         "trend": "10:00",
         "linkedin": "11:30",
-        "evening": "17:00",
-        "weekly": "fri 18:00",
         "knowledge": "sat 10:00",
         "meta": "1st 11:00",
     }
 
-    # 10. Trends
+    # 7. Trends
     config["trends"] = {
         "subreddits": ["artificial", "MachineLearning", "LocalLLaMA", "singularity", "ChatGPT"],
         "hn_limit": 15,
@@ -262,7 +210,7 @@ def main():
     print("\n" + "=" * 50)
     print("  Setup complete!")
     print("=" * 50)
-    print(f"\nTest: python3 main.py --test morning")
+    print(f"\nTest: python3 main.py --test trend")
     print(f"Run:  python3 main.py")
     print(f"Docker: docker-compose up -d")
 
