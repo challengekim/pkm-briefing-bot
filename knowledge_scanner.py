@@ -253,15 +253,40 @@ def scan_all_notes(config):
     return notes
 
 
+def _validate_url(url):
+    """Block requests to internal/private networks (SSRF protection)."""
+    import ipaddress
+    import socket
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsupported scheme: {parsed.scheme}")
+    if not parsed.hostname:
+        raise ValueError("No hostname in URL")
+    blocked = [
+        ipaddress.ip_network("127.0.0.0/8"),
+        ipaddress.ip_network("10.0.0.0/8"),
+        ipaddress.ip_network("172.16.0.0/12"),
+        ipaddress.ip_network("192.168.0.0/16"),
+        ipaddress.ip_network("169.254.0.0/16"),
+    ]
+    for info in socket.getaddrinfo(parsed.hostname, parsed.port or 443):
+        ip = ipaddress.ip_address(info[4][0])
+        for net in blocked:
+            if ip in net:
+                raise ValueError(f"URL resolves to blocked network: {ip}")
+
+
 def save_url_to_vault(url, vault_path, scan_paths, summarizer=None):
     """Save a URL to the vault as a markdown file with frontmatter.
 
     Uses requests + beautifulsoup4 to extract content.
     Optionally uses summarizer for AI-generated description.
     """
+    _validate_url(url)
+
     # Fetch the page
     headers = {"User-Agent": "Mozilla/5.0 (compound-brain bot)"}
-    resp = requests.get(url, headers=headers, timeout=15)
+    resp = requests.get(url, headers=headers, timeout=15, allow_redirects=False)
     resp.raise_for_status()
 
     soup = BeautifulSoup(resp.text, "html.parser")
