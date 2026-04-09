@@ -7,7 +7,7 @@ import sys
 
 def main():
     print("\n" + "=" * 50)
-    print("  PKM Briefing Bot — Setup Wizard")
+    print("  Compound Brain — Setup Wizard")
     print("=" * 50 + "\n")
 
     config = {}
@@ -114,15 +114,43 @@ def main():
 
     # 3. Telegram Bot
     print("\n--- Telegram Bot ---")
-    print("1. Open Telegram, search for @BotFather")
-    print("2. Send /newbot and follow the prompts")
-    print("3. Copy the bot token")
-    bot_token = input("Bot Token: ").strip()
+    print("How to create a Telegram bot (1 minute):\n")
+    print("  1. Open Telegram on your phone or desktop")
+    print("  2. Search for @BotFather and start a chat")
+    print("  3. Send: /newbot")
+    print("  4. Choose a name (e.g. 'My Compound Brain')")
+    print("  5. Choose a username (e.g. 'my_compound_brain_bot')")
+    print("  6. BotFather gives you a token like: 123456:ABC-DEF...")
+    print()
+    bot_token = input("Paste your bot token here: ").strip()
     env["TELEGRAM_BOT_TOKEN"] = bot_token
-    print("4. Send a message to your bot, then visit:")
-    print(f"   https://api.telegram.org/bot{bot_token}/getUpdates")
-    print("5. Find your chat_id in the response")
-    chat_id = input("Chat ID: ").strip()
+
+    # Auto-detect chat_id
+    print("\nNow send ANY message to your bot in Telegram.")
+    print("(Open the bot chat and type 'hello')")
+    input("Press Enter after sending a message...")
+
+    import requests
+    chat_id = ""
+    try:
+        resp = requests.get(f"https://api.telegram.org/bot{bot_token}/getUpdates", timeout=10)
+        if resp.ok:
+            results = resp.json().get("result", [])
+            for r in results:
+                cid = r.get("message", {}).get("chat", {}).get("id")
+                if cid:
+                    chat_id = str(cid)
+                    break
+    except Exception:
+        pass
+
+    if chat_id:
+        print(f"✓ Chat ID detected: {chat_id}")
+    else:
+        print("Could not auto-detect. Enter manually:")
+        print(f"  Visit: https://api.telegram.org/bot{bot_token}/getUpdates")
+        print("  Find 'chat':{'id': NUMBER} in the response")
+        chat_id = input("Chat ID: ").strip()
     env["TELEGRAM_CHAT_ID"] = chat_id
 
     # 4. Vault path
@@ -210,9 +238,10 @@ def main():
     print("\n" + "=" * 50)
     print("  Setup complete!")
     print("=" * 50)
-    print(f"\nTest: python3 main.py --test trend")
-    print(f"Run:  python3 main.py")
-    print(f"Docker: docker-compose up -d")
+    print(f"\n  Save:  python3 main.py --save <URL>")
+    print(f"  Test:  python3 main.py --test trend")
+    print(f"  Run:   python3 main.py")
+    print(f"\n  Or just send a URL to your Telegram bot!")
 
 
 if __name__ == "__main__":

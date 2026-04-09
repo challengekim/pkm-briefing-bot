@@ -208,33 +208,27 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 
 **로컬에서 실행합니다. 서버 배포 필요 없음.**
 
-### Ollama로 시작 (API key 없이, 완전 무료)
+### 한 줄 설치
 
 ```bash
-# 1. Ollama 설치 (https://ollama.com)
-ollama pull llama3.1:8b
-
-# 2. 클론 + 설정
-git clone https://github.com/challengekim/compound-brain
-cd compound-brain
-pip install -r requirements.txt
-python3 setup_wizard.py        # "Ollama" 선택 → API key 입력 없음
-
-# 3. 실행
-python3 main.py --test trend   # 테스트
-python3 main.py                # 스케줄러 실행 (터미널에서 계속 돌아감)
+bash <(curl -s https://raw.githubusercontent.com/challengekim/compound-brain/main/install.sh)
 ```
 
-### Gemini로 시작 (무료 API key, 더 좋은 품질)
+또는 수동:
 
 ```bash
 git clone https://github.com/challengekim/compound-brain
 cd compound-brain
 pip install -r requirements.txt
-python3 setup_wizard.py        # "Gemini" 선택 → aistudio.google.com 무료 키 입력
-python3 main.py --test trend
-python3 main.py
+python3 setup_wizard.py        # 대화형 — 모든 과정을 안내합니다
+python3 main.py                # 봇 실행
 ```
+
+설정 마법사가 단계별로 안내합니다:
+- LLM 선택 (Ollama = API key 불필요, Gemini = 무료 키, 외 3종)
+- 텔레그램 봇 생성 (마법사 안에서 단계별 설명)
+- 텔레그램 chat ID 자동 감지
+- vault 폴더 설정
 
 ### 선택사항: 백그라운드 실행
 

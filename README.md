@@ -208,34 +208,27 @@ The meta-review diagnoses the system: what categories you're neglecting, which s
 
 **Runs locally on your machine. No server or deployment needed.**
 
-### With Ollama (no API key, 100% free)
+### One-line install
 
 ```bash
-# 1. Install Ollama (https://ollama.com)
-ollama pull llama3.1:8b
-
-# 2. Clone and set up
-git clone https://github.com/challengekim/compound-brain
-cd compound-brain
-pip install -r requirements.txt
-python3 setup_wizard.py        # Select "Ollama" → no API key needed
-
-# 3. Run
-python3 main.py --save https://example.com/article  # Save an article
-python3 main.py --test trend   # Test trend digest (auto-saves top 3)
-python3 main.py                # Run scheduler (keeps running)
+bash <(curl -s https://raw.githubusercontent.com/challengekim/compound-brain/main/install.sh)
 ```
 
-### With Gemini (free API key, better quality)
+Or manually:
 
 ```bash
 git clone https://github.com/challengekim/compound-brain
 cd compound-brain
 pip install -r requirements.txt
-python3 setup_wizard.py        # Select "Gemini" → paste free key from aistudio.google.com
-python3 main.py --test trend
-python3 main.py
+python3 setup_wizard.py        # Interactive — guides you through everything
+python3 main.py                # Start the bot
 ```
+
+The setup wizard walks you through each step:
+- Choose your LLM (Ollama = no API key, or Gemini = free key, or 3 others)
+- Create a Telegram bot (step-by-step instructions inside the wizard)
+- Auto-detects your Telegram chat ID
+- Sets up your vault folder
 
 ### Optional: Run in background
 
