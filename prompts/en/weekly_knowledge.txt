@@ -9,7 +9,7 @@ Saved notes ({note_count} items):
 [Project Context]
 {project_context}
 
-[Previous Week's Report Summary]
+[Recent Weekly Report History (up to 4 weeks)]
 {previous_report}
 
 Please write a weekly knowledge compound report in the following format:

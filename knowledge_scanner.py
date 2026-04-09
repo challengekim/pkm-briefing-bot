@@ -129,40 +129,52 @@ def save_project_ideas(vault_path, ideas_text, date_str, ideas_file="20_Projects
 
 
 def save_weekly_report(vault_path, report_text, date_str):
-    """Save weekly knowledge report for future reference (compound learning)."""
+    """Append weekly report to compound log (append-only, Managed Agents pattern)."""
     reports_dir = os.path.join(vault_path, "20_Projects", "Weekly Reports")
     os.makedirs(reports_dir, exist_ok=True)
-    filepath = os.path.join(reports_dir, f"weekly-{date_str}.md")
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(f"---\ntitle: Weekly Knowledge Report {date_str}\ntype: weekly-report\n---\n\n{report_text}\n")
-    logger.info(f"Weekly report saved to {filepath}")
+    filepath = os.path.join(reports_dir, "compound-log.md")
+
+    entry = f"\n\n---\n\n## Week of {date_str}\n\n{report_text}\n"
+
+    if not os.path.exists(filepath):
+        header = (
+            "# Compound Learning Log\n\n"
+            "Append-only log of weekly knowledge reports.\n"
+            "Each week's analysis builds on previous weeks.\n"
+        )
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(header + entry)
+    else:
+        with open(filepath, "a", encoding="utf-8") as f:
+            f.write(entry)
+
+    logger.info(f"Weekly report appended to {filepath}")
     return filepath
 
 
-def load_previous_weekly_report(vault_path):
-    """Load the most recent weekly report for compound learning."""
-    reports_dir = os.path.join(vault_path, "20_Projects", "Weekly Reports")
-    if not os.path.isdir(reports_dir):
+def load_previous_weekly_reports(vault_path, weeks=4):
+    """Load the most recent N weeks from the compound log for compound learning."""
+    filepath = os.path.join(vault_path, "20_Projects", "Weekly Reports", "compound-log.md")
+    if not os.path.exists(filepath):
         return ""
-    files = sorted(
-        [f for f in os.listdir(reports_dir) if f.startswith("weekly-") and f.endswith(".md")],
-        reverse=True,
-    )
-    if not files:
-        return ""
-    # Load the most recent one
-    filepath = os.path.join(reports_dir, files[0])
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
-        # Strip frontmatter
-        if content.startswith("---"):
-            end = content.find("---", 3)
-            if end != -1:
-                content = content[end + 3:].strip()
-        return content[:3000]  # limit to 3000 chars
     except Exception:
         return ""
+
+    # Split by week separator and take the most recent N
+    sections = content.split("\n---\n\n## Week of ")
+    if len(sections) <= 1:
+        return ""
+
+    recent = sections[-weeks:]  # last N weeks
+    result = "\n\n---\n\n".join(
+        f"## Week of {s}" if not s.startswith("## Week of") else s
+        for s in recent
+    )
+    # Limit total size to avoid blowing up the prompt
+    return result[:6000]
 
 
 def analyze_tag_connections(notes):
