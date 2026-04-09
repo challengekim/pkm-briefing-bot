@@ -214,23 +214,31 @@ The meta-review diagnoses the system: what categories you're neglecting, which s
 
 **Runs locally on your machine. No server or deployment needed.**
 
-### One-line install
+### macOS / Linux
 
 ```bash
+# One-line install
 bash <(curl -s https://raw.githubusercontent.com/challengekim/compound-brain/main/install.sh)
-```
 
-Or manually:
-
-```bash
+# Or manually
 git clone https://github.com/challengekim/compound-brain
 cd compound-brain
 pip install -r requirements.txt
-python3 setup_wizard.py        # Interactive — guides you through everything
-python3 main.py                # Start the bot
+python3 setup_wizard.py
+python3 main.py
 ```
 
-The setup wizard walks you through each step:
+### Windows
+
+```powershell
+git clone https://github.com/challengekim/compound-brain
+cd compound-brain
+pip install -r requirements.txt
+python setup_wizard.py
+python main.py
+```
+
+The interactive setup wizard guides you through each step:
 - Choose your LLM (Ollama = no API key, or Gemini = free key, or 3 others)
 - Create a Telegram bot (step-by-step instructions inside the wizard)
 - Auto-detects your Telegram chat ID
@@ -239,10 +247,13 @@ The setup wizard walks you through each step:
 ### Optional: Run in background
 
 ```bash
-# Keep running after closing terminal
+# macOS / Linux
 nohup python3 main.py &
 
-# Or use Docker (optional, not required)
+# Windows (PowerShell)
+Start-Process python main.py -WindowStyle Hidden
+
+# Docker (any OS)
 docker-compose up -d
 ```
 
@@ -313,7 +324,7 @@ See [`vault_template/`](vault_template/) for the expected folder structure.
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.9+ (macOS, Linux, Windows)
 - Telegram bot ([free, 2 minutes to create](https://core.telegram.org/bots#botfather))
 - **One of** (choose during setup):
   - [Ollama](https://ollama.com) installed locally — **no API key, $0**

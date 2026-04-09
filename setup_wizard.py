@@ -238,9 +238,10 @@ def main():
     print("\n" + "=" * 50)
     print("  Setup complete!")
     print("=" * 50)
-    print(f"\n  Save:  python3 main.py --save <URL>")
-    print(f"  Test:  python3 main.py --test trend")
-    print(f"  Run:   python3 main.py")
+    py = "python" if sys.platform == "win32" else "python3"
+    print(f"\n  Save:  {py} main.py --save <URL>")
+    print(f"  Test:  {py} main.py --test trend")
+    print(f"  Run:   {py} main.py")
     print(f"\n  Or just send a URL to your Telegram bot!")
 
 

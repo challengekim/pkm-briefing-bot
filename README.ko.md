@@ -214,23 +214,31 @@ Andrej Karpathy의 비전: LLM을 챗봇이 아니라 **운영체제 레이어**
 
 **로컬에서 실행합니다. 서버 배포 필요 없음.**
 
-### 한 줄 설치
+### macOS / Linux
 
 ```bash
+# 한 줄 설치
 bash <(curl -s https://raw.githubusercontent.com/challengekim/compound-brain/main/install.sh)
-```
 
-또는 수동:
-
-```bash
+# 또는 수동
 git clone https://github.com/challengekim/compound-brain
 cd compound-brain
 pip install -r requirements.txt
-python3 setup_wizard.py        # 대화형 — 모든 과정을 안내합니다
-python3 main.py                # 봇 실행
+python3 setup_wizard.py
+python3 main.py
 ```
 
-설정 마법사가 단계별로 안내합니다:
+### Windows
+
+```powershell
+git clone https://github.com/challengekim/compound-brain
+cd compound-brain
+pip install -r requirements.txt
+python setup_wizard.py
+python main.py
+```
+
+대화형 설정 마법사가 안내합니다:
 - LLM 선택 (Ollama = API key 불필요, Gemini = 무료 키, 외 3종)
 - 텔레그램 봇 생성 (마법사 안에서 단계별 설명)
 - 텔레그램 chat ID 자동 감지
@@ -239,7 +247,14 @@ python3 main.py                # 봇 실행
 ### 선택사항: 백그라운드 실행
 
 ```bash
-nohup python3 main.py &        # 터미널 닫아도 계속 실행
+# macOS / Linux
+nohup python3 main.py &
+
+# Windows (PowerShell)
+Start-Process python main.py -WindowStyle Hidden
+
+# Docker (모든 OS)
+docker-compose up -d
 
 # 또는 Docker (선택사항, 필수 아님)
 docker-compose up -d
