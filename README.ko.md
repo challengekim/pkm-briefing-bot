@@ -16,6 +16,12 @@
 
 **Compound Brain이 이걸 해결합니다.** 저장한 모든 글을 읽고, 놓친 패턴을 찾고, 매주 자기 분석 위에 분석을 쌓습니다 — 지식이 먼지 쌓이는 대신 복리로 쌓입니다.
 
+### 이걸 어떻게 만들었나
+
+하나의 아이디어에서 나온 도구가 아닙니다. 수십 개의 오픈소스 프로젝트, AI 스킬, 지식 관리 프레임워크, 워크플로우 도구를 리서치하고 — **이것들을 어떻게 조합해야 진짜 복리 학습 효과가 나는지** 고민해서 만든 시스템입니다.
+
+핵심 질문은 이거였습니다: **"각각 따로 잘 작동하는 도구들을 어떻게 연결해야 지식이 실제로 누적되고 업무에 적용될까?"** Karpathy의 [autoresearch](https://github.com/karpathy/autoresearch)(자기 개선 루프), [LLM Wiki 개념](https://x.com/karpathy/status/2039805659525644595)(영속적 지식 베이스), [Last30Days](https://github.com/mvanhorn/last30days-skill)(트렌드 리서치), [Simpson Sim의 복리 지식 루프](https://retn.kr/blog/compound-learning-ai-system/), Tiago Forte의 BASB, 루만의 제텔카스텐 — 각각은 하나의 문제를 잘 해결합니다. 하지만 서로 연결되지 않습니다. 이 프로젝트는 그 연결을 찾고, 복리 효과를 만드는 접착제를 직접 구축한 결과물입니다.
+
 ---
 
 ## 이 시스템이 하는 일

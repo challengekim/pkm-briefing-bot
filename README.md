@@ -16,6 +16,12 @@ Even the ones you read — you forget them within days. The insights never conne
 
 **Compound Brain fixes this.** It reads everything you save, finds the patterns you missed, and builds on its own analysis week after week — so your knowledge actually compounds instead of collecting dust.
 
+### How this was built
+
+This isn't a tool built from a single idea. It came from months of researching dozens of open-source projects, AI skills, knowledge management frameworks, and workflow tools — then figuring out how to actually combine them into one system that produces real compound learning effects.
+
+The key question was: **"How do I make all these separate tools work together so that knowledge actually accumulates and improves my work?"** Each piece (Karpathy's [autoresearch](https://github.com/karpathy/autoresearch) for self-improvement, his [LLM Wiki concept](https://x.com/karpathy/status/2039805659525644595) for persistent knowledge, [Last30Days](https://github.com/mvanhorn/last30days-skill) for trend research, [Simpson Sim's compound learning loop](https://retn.kr/blog/compound-learning-ai-system/), Tiago Forte's BASB, Luhmann's Zettelkasten) solves one problem well. But none of them connect to each other out of the box. This project is the result of figuring out those connections and building the glue that makes them compound.
+
 ---
 
 ## What This Does
