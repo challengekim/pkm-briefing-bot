@@ -27,6 +27,8 @@ Thanks for your interest in Compound Brain!
 - Keep functions small
 - Error handling: log and continue, don't crash
 
-## Questions?
+## Questions or feedback?
 
-Open an issue on GitHub.
+- **Bug reports / feature requests**: [Open an issue](https://github.com/challengekim/compound-brain/issues)
+- **Code contributions**: Fork → branch → PR
+- **General questions**: [Discussions](https://github.com/challengekim/compound-brain/discussions) or email kimtaewoo1201@gmail.com
