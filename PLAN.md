@@ -1029,3 +1029,99 @@ To upgrade: `agent.mode: reactive` in config.yaml. That's it.
 4. **Vault as state store.** Instead of `~/.compound-brain/memory.json`, store agent state directly in the Obsidian vault (e.g., `20_Projects/Compound Brain/agent-state.md`). Pro: visible to user, backed up with vault. Con: mixing data with knowledge.
 
 5. **Rate limiting for self-improvement.** Phase C's auto-config changes need careful bounds. The proposed 3 changes/month and 1 prompt mutation/week may need tuning based on real usage.
+
+---
+
+## Phase 3: Full Stack Dogfooding (Post-Core)
+
+**Duration:** 1 week
+**Core idea:** Make the agent usable daily — fix data pipeline, deploy, add conversation + dashboard.
+**Prerequisite:** Phases A-D complete
+
+**Strategy:** 1-month dogfooding period. Use the agent daily, measure what works, then decide on startup expansion.
+
+### 3.1. Orchestrator Data Pipeline Fix (CRITICAL)
+
+**Problem:** `_build_context()` had broken attribute access — `getattr(self.memory, "preferred_categories", [])` always returned `[]` because `AgentMemory` stores categories in `self.preferences["preferred_categories"]`.
+
+**Fixed:**
+- `_build_context()` now calls `self.memory.get_preferred_categories()` → returns `(category, score)` tuples
+- `_build_planning_prompt()` includes engagement stats and formatted category scores
+- `_rule_based_plan()` now includes curator (`quality_audit`, `connect_notes`) and alternates default plans between researcher+analyst and curator+analyst
+
+### 3.2. Railway Deployment
+
+**Fixed:**
+- `railway.json`: builder changed from NIXPACKS to DOCKERFILE
+- `Dockerfile`: build order fixed (COPY src/ before pip install)
+- Volume: `/data/compound-brain` for persistent memory/event-log
+
+**Env vars needed:**
+- `COMPOUND_BRAIN_PATH=/data/compound-brain`
+- `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- `DASHBOARD_PASSWORD` (optional)
+- `DASHBOARD_PORT` (default 8080)
+
+### 3.3. Telegram Natural Language Conversation
+
+**New file: `vault_search.py`**
+
+Keyword-based vault search + LLM synthesis:
+- `search_vault(config, query)` — scores notes by keyword hit count
+- `synthesize_answer(summarizer, query, notes)` — LLM generates answer from matched notes
+
+**TelegramHandler changes:**
+- Non-URL, non-command text → `_handle_question()` (vault search + LLM answer)
+- `/status` — agent state + memory stats
+- `/report` — trigger analysis now
+- `/help` — command list
+
+### 3.4. Web Dashboard MVP
+
+**New file: `dashboard.py`**
+
+Flask app running in daemon thread alongside APScheduler:
+- `/health` — Railway health check
+- `/api/status` — agent mode + state
+- `/api/events` — event log (last 50)
+- `/api/memory` — engagement stats, categories, source rankings
+- Self-contained dark-theme SPA with 30s auto-refresh
+- Optional basic auth via `DASHBOARD_PASSWORD`
+
+### 3.5. Verification
+
+| Test | How to verify |
+|------|---------------|
+| Orchestrator uses real data | preferred_categories returns actual tuples, engagement stats in prompt |
+| Rule-based plan includes curator | curator quality_audit appears in fallback plans |
+| Railway deploys | `git push` → Dockerfile builds, health check passes |
+| Telegram Q&A works | Send text → get vault-based answer with source notes |
+| Telegram commands work | `/status`, `/report`, `/help` return expected responses |
+| Dashboard shows data | Browser at :8080 shows agent status, events, memory |
+
+### 3.6. New/Modified Files
+
+```
+NEW:
+  vault_search.py     — keyword vault search + LLM synthesis
+  dashboard.py        — Flask web dashboard MVP
+  tests/test_vault_search.py   — 22 tests
+  tests/test_dashboard.py      — 20 tests
+
+MODIFIED:
+  agents/orchestrator.py  — data pipeline fix, curator fallback
+  telegram_handler.py     — natural language + command routing
+  main.py                 — dashboard integration
+  pyproject.toml          — flask dependency
+  railway.json            — DOCKERFILE builder
+  Dockerfile              — build order fix, EXPOSE 8080
+```
+
+### 3.7. What's Next (Phase 4 — after dogfooding)
+
+Deferred until demand signals from 1-month usage:
+- Plugin system (agents/ auto-discovery)
+- Multi-user support
+- README.md for public release
+- Evolution ↔ orchestrator integration
+- Embedding-based vault search (if keyword matching proves insufficient)

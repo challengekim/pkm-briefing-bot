@@ -21,6 +21,7 @@ from .trend_fetcher import fetch_all_trends
 from .brain import Brain
 from .hands import Hands
 from .agent_state import AgentState
+from .dashboard import create_app, run_dashboard
 
 logging.basicConfig(
     level=logging.INFO,
@@ -634,6 +635,26 @@ def main():
         # Check for incoming Telegram URLs every 30 seconds
         scheduler.add_job(process_telegram_saves, "interval", seconds=30, id="telegram_bot")
         logger.info("Telegram save listener active (polling every 30s)")
+
+    # Start web dashboard (daemon thread, non-blocking)
+    dashboard_port = int(os.getenv("DASHBOARD_PORT", "8080"))
+    _dashboard_memory = None
+    _dashboard_event_log = None
+    _dashboard_state = None
+    if config.agent_mode == "multi-agent":
+        _dashboard_memory = memory
+        _dashboard_event_log = event_log
+        _dashboard_state = state
+    elif config.agent_mode != "disabled":
+        _dashboard_memory = memory
+        _dashboard_state = state
+    dashboard_app = create_app(
+        config=config,
+        memory=_dashboard_memory,
+        event_log=_dashboard_event_log,
+        agent_state=_dashboard_state,
+    )
+    run_dashboard(dashboard_app, port=dashboard_port)
 
     try:
         scheduler.start()

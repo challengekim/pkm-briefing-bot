@@ -12,15 +12,17 @@ from compound_agent.agents.orchestrator import Orchestrator
 # Helpers
 # ------------------------------------------------------------------
 
-def _make_registry(agents=("researcher", "analyst")):
+def _make_registry(agents=("researcher", "analyst", "curator")):
     registry = AgentRegistry()
+    caps_map = {
+        "researcher": ["fill_gap", "deep_dive", "trending_relevant"],
+        "analyst": ["compound_analysis", "trend_intersection", "blind_spot_detection"],
+        "curator": ["quality_audit", "connect_notes"],
+    }
     for name in agents:
         agent = MagicMock()
         agent.name = name
-        agent.get_capabilities.return_value = {
-            "researcher": ["fill_gap", "deep_dive", "trending_relevant"],
-            "analyst": ["compound_analysis", "trend_intersection", "blind_spot_detection"],
-        }.get(name, ["task_x"])
+        agent.get_capabilities.return_value = caps_map.get(name, ["task_x"])
         agent.run.return_value = AgentResult(
             success=True, agent=name, task_type="trending_relevant", data={"items": []}
         )
@@ -32,7 +34,7 @@ def _make_orchestrator(scheduled_action=None, max_llm_calls=6):
     config = MagicMock()
     config.orchestrator_max_llm_calls = max_llm_calls
     memory = MagicMock()
-    memory.preferred_categories = ["ai"]
+    memory.get_preferred_categories.return_value = [("ai", 0.8), ("marketing", 0.3)]
     memory.get_engagement_stats.return_value = {}
 
     event_log = MagicMock()
@@ -214,6 +216,66 @@ class TestRuleBasedPlan:
         orch = _make_orchestrator()
         plan = orch._rule_based_plan({"scheduled_action": "something_else"})
         assert len(plan) >= 1
+
+    def test_curator_audit_maps_to_curator_quality_audit(self):
+        orch = _make_orchestrator()
+        plan = orch._rule_based_plan({"scheduled_action": "curator_audit"})
+        assert plan[0]["agent"] == "curator"
+        assert plan[0]["task"]["type"] == "quality_audit"
+
+    def test_curator_connect_maps_to_curator_connect_notes(self):
+        orch = _make_orchestrator()
+        plan = orch._rule_based_plan({"scheduled_action": "curator_connect"})
+        assert plan[0]["agent"] == "curator"
+        assert plan[0]["task"]["type"] == "connect_notes"
+
+    def test_default_plan_alternates_on_odd_recent_events(self):
+        orch = _make_orchestrator()
+        # odd recent_event_count → curator+analyst
+        plan = orch._rule_based_plan({"recent_event_count": 1})
+        assert plan[0]["agent"] == "curator"
+        assert plan[0]["task"]["type"] == "quality_audit"
+
+    def test_default_plan_uses_researcher_on_even_recent_events(self):
+        orch = _make_orchestrator()
+        # even recent_event_count → researcher+analyst
+        plan = orch._rule_based_plan({"recent_event_count": 0})
+        assert plan[0]["agent"] == "researcher"
+        assert plan[0]["task"]["type"] == "trending_relevant"
+
+
+# ------------------------------------------------------------------
+# Prompt building
+# ------------------------------------------------------------------
+
+class TestPromptBuilding:
+    def test_preferred_categories_formatted_as_tuples(self):
+        orch = _make_orchestrator()
+        context = orch._build_context()
+        prompt = orch._build_planning_prompt(context)
+        assert "ai (0.8)" in prompt
+        assert "marketing (0.3)" in prompt
+
+    def test_engagement_stats_included_in_prompt(self):
+        orch = _make_orchestrator()
+        orch.memory.get_engagement_stats.return_value = {"engagement_rate": 0.42, "total": 10}
+        context = orch._build_context()
+        prompt = orch._build_planning_prompt(context)
+        assert "42%" in prompt
+        assert "total: 10" in prompt
+
+    def test_no_engagement_data_shows_fallback(self):
+        orch = _make_orchestrator()
+        orch.memory.get_engagement_stats.return_value = {}
+        context = orch._build_context()
+        prompt = orch._build_planning_prompt(context)
+        assert "No engagement data" in prompt
+
+    def test_preferred_categories_uses_get_preferred_categories(self):
+        orch = _make_orchestrator()
+        context = orch._build_context()
+        assert context["preferred_categories"] == [("ai", 0.8), ("marketing", 0.3)]
+        orch.memory.get_preferred_categories.assert_called_once()
 
 
 # ------------------------------------------------------------------

@@ -187,11 +187,19 @@ class Orchestrator:
             "knowledge": [{"agent": "analyst", "task": {"type": "compound_analysis"}}],
             "suggest_articles": [{"agent": "researcher", "task": {"type": "fill_gap", "category": "general"}}],
             "topic_summary": [{"agent": "analyst", "task": {"type": "trend_intersection"}}],
+            "curator_audit": [{"agent": "curator", "task": {"type": "quality_audit"}}],
+            "curator_connect": [{"agent": "curator", "task": {"type": "connect_notes"}}],
         }
         if scheduled and scheduled in action_map:
             return action_map[scheduled]
 
-        # Default: researcher trending + analyst compound
+        # Default: alternate between (researcher+analyst) and (curator+analyst) to ensure vault maintenance
+        recent_events = context.get("recent_event_count", 0)
+        if recent_events % 2 == 1:
+            return [
+                {"agent": "curator", "task": {"type": "quality_audit"}},
+                {"agent": "analyst", "task": {"type": "compound_analysis"}},
+            ]
         return [
             {"agent": "researcher", "task": {"type": "trending_relevant"}},
             {"agent": "analyst", "task": {"type": "compound_analysis"}},
@@ -282,7 +290,7 @@ class Orchestrator:
         # Vault stats from memory
         if self.memory is not None:
             try:
-                context["preferred_categories"] = getattr(self.memory, "preferred_categories", [])
+                context["preferred_categories"] = self.memory.get_preferred_categories()
                 context["engagement_stats"] = {}
                 if hasattr(self.memory, "get_engagement_stats"):
                     context["engagement_stats"] = self.memory.get_engagement_stats(days=7)
@@ -299,12 +307,20 @@ class Orchestrator:
         )
         scheduled = context.get("scheduled_action") or "none"
         preferred = context.get("preferred_categories", [])
-        safe_preferred = [_sanitize(p) for p in preferred] if preferred else []
+        safe_preferred = [f"{_sanitize(cat)} ({score:.1f})" for cat, score in preferred] if preferred else []
+
+        engagement = context.get("engagement_stats", {})
+        eng_summary = (
+            f"Engagement rate: {engagement.get('engagement_rate', 0):.0%}, total: {engagement.get('total', 0)}"
+            if engagement
+            else "No engagement data"
+        )
 
         return (
             f"You are planning tasks for a compound learning agent.\n\n"
             f"Scheduled action: {scheduled}\n"
-            f"User preferred categories: {', '.join(safe_preferred) if safe_preferred else 'unknown'}\n\n"
+            f"User preferred categories: {', '.join(safe_preferred) if safe_preferred else 'unknown'}\n"
+            f"Engagement stats: {eng_summary}\n\n"
             f"Available agents and their task types:\n{agents_desc}\n\n"
             f"Return a JSON array of task steps to execute. Each step must have:\n"
             f'  - "agent": agent name (must be one of: {list(context.get("available_agents", {}).keys())})\n'

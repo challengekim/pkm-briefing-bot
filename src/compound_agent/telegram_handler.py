@@ -64,10 +64,12 @@ class TelegramHandler:
                 continue
 
             urls = URL_RE.findall(text)
-            if not urls:
-                continue
-
-            self._handle_urls(urls[:3])  # Max 3 URLs per message
+            if urls:
+                self._handle_urls(urls[:3])  # Max 3 URLs per message
+            elif text.startswith("/"):
+                self._handle_command(text)
+            else:
+                self._handle_question(text)
 
     def _handle_urls(self, urls):
         """Process URL saves with context-aware responses."""
@@ -123,6 +125,76 @@ class TelegramHandler:
                 self.telegram.send_message_with_keyboard(response, keyboard)
             else:
                 self.telegram.send_message(response)
+
+    def _handle_command(self, text: str):
+        """Handle slash commands."""
+        cmd = text.split()[0].lower()
+        if cmd == "/status":
+            status = self._get_status_text()
+            self.telegram.send_message(status)
+        elif cmd == "/report":
+            self.telegram.send_message("📊 분석을 시작합니다...")
+            try:
+                result = self.brain.hands.run_weekly_knowledge()
+                if not result.get("success", True):
+                    self.telegram.send_message("❌ 분석 실패")
+            except Exception as e:
+                self.telegram.send_message(f"❌ 오류: {escape_html(str(e))}")
+        elif cmd == "/help":
+            help_text = (
+                "📋 <b>사용 가능한 명령어</b>\n\n"
+                "/status — 에이전트 상태 확인\n"
+                "/report — 주간 분석 즉시 실행\n"
+                "/help — 이 도움말\n\n"
+                "💬 텍스트를 보내면 vault에서 관련 내용을 검색합니다.\n"
+                "🔗 URL을 보내면 vault에 저장합니다."
+            )
+            self.telegram.send_message(help_text)
+
+    def _handle_question(self, text: str):
+        """Handle natural language questions by searching vault."""
+        from .vault_search import search_vault, synthesize_answer
+
+        try:
+            results = search_vault(self.config, text, max_results=5)
+            if not results:
+                self.telegram.send_message("🔍 관련 노트를 찾지 못했습니다.")
+                return
+
+            answer = synthesize_answer(self.brain.hands.summarizer, text, results)
+
+            sources = "\n".join(
+                f"  📄 {escape_html(r.get('title', 'Untitled'))}"
+                for r in results[:3]
+            )
+            response = f"💡 {escape_html(answer)}\n\n<b>참고 노트:</b>\n{sources}"
+            self.telegram.send_message(response)
+        except Exception as e:
+            logger.error("Question handling failed: %s", e)
+            self.telegram.send_message(f"❌ 질문 처리 실패: {escape_html(str(e))}")
+
+    def _get_status_text(self) -> str:
+        """Build agent status text."""
+        mode = self.config.agent_mode
+        state_name = self.state.current_state if hasattr(self.state, 'current_state') else 'unknown'
+
+        mem_stats = ""
+        if hasattr(self.brain, 'memory') and self.brain.memory:
+            engagement = self.brain.memory.get_engagement_stats(days=7)
+            cats = self.brain.memory.get_preferred_categories(top_n=3)
+            cat_text = ", ".join(f"{c}({s:.1f})" for c, s in cats) if cats else "없음"
+            mem_stats = (
+                f"\n📊 7일 참여: {engagement.get('total', 0)}건 "
+                f"(참여율 {engagement.get('engagement_rate', 0):.0%})"
+                f"\n🏷️ 관심 카테고리: {cat_text}"
+            )
+
+        return (
+            f"🤖 <b>Agent Status</b>\n"
+            f"모드: {escape_html(mode)}\n"
+            f"상태: {escape_html(state_name)}"
+            f"{mem_stats}"
+        )
 
     def _handle_callback(self, callback_query):
         """Handle inline keyboard button presses."""
