@@ -1,0 +1,11 @@
+Analyze the following newsletter email and summarize in this format:
+
+**Key Summary**: (Main points in 2-3 lines, include specific numbers or examples)
+**Key Insights**: (Actionable insights for work, or 'None')
+**Action Required**: (Specific actions I need to take, or 'None')
+
+From: {sender}
+Subject: {subject}
+
+Body:
+{body}

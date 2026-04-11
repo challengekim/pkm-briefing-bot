@@ -1,0 +1,13 @@
+The following are {email_count} emails from the same business thread.
+Analyze the entire thread into a single summary:
+
+**Summary**: (Key points in 2-3 lines)
+**Decisions Made**: (Already confirmed items, or 'None')
+**Decisions Needed**: (Items still requiring a decision, or 'None')
+**Action Required**: (Specific actions I need to take, or 'None')
+
+From: {senders}
+Subject: {subject}
+
+Thread content:
+{thread_body}

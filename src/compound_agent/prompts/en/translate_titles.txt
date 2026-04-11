@@ -1,0 +1,4 @@
+Translate the article titles below into concise Korean.
+Keep the numbering and only provide translations. No explanations or elaboration, just the titles.
+
+{titles_text}

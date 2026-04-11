@@ -1,0 +1,9 @@
+이번 주 업무를 간단히 리뷰하고 다음 주를 준비해주세요. 3-5줄로 요약.
+
+이번 주 미팅 수: {meeting_count}건
+처리한 이메일: 개인 {personal_count}건, 회사 {work_count}건
+
+다음 주 주요 일정:
+{next_week_str}
+
+주간 리뷰:

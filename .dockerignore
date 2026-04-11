@@ -1,0 +1,11 @@
+.env
+config.yaml
+client_secret.json
+*.token.json
+vault/
+.git/
+__pycache__/
+*.pyc
+.omc/
+PRODUCT_SPEC.md
+HANDOFF.md

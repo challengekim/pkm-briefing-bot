@@ -1,0 +1,9 @@
+Briefly review this week's work and prepare for next week. Summarize in 3-5 lines.
+
+Meetings this week: {meeting_count}
+Emails processed: personal {personal_count}, work {work_count}
+
+Key events next week:
+{next_week_str}
+
+Weekly review:

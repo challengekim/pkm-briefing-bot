@@ -1,0 +1,13 @@
+The user shows high interest in '{category}' but hasn't saved any new materials in the last {days_without} days.
+
+[User Preference Profile]
+Preferred categories: {preferred_categories}
+Recently positively rated content: {recent_positive}
+
+[Current Trends]
+{current_trends}
+
+Please write personalized recommendations in this format:
+1. Why they should revisit this category (motivation, 1-2 lines)
+2. Recommended reading 3-5 items (prioritize relevant trend articles)
+3. Exploration keywords for this week 2-3

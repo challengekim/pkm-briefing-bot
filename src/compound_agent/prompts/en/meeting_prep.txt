@@ -1,0 +1,9 @@
+Based on the following meeting information, provide brief preparation notes.
+Summarize key points in 3 lines or less.
+
+Meeting: {summary}
+Attendees: {attendees}
+Description:
+{description}
+
+Preparation notes:

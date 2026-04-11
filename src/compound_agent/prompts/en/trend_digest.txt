@@ -1,0 +1,14 @@
+Below is a list of articles collected today from Hacker News, Reddit AI subreddits, and GeekNews.
+Select the 5-7 most important issues in the AI/tech industry,
+and summarize each in 2-3 lines.
+
+Format (please follow this format exactly):
+1. Title (Source)
+Link: URL
+Summary in 2-3 lines
+
+At the end, add a single line: 'Keywords of the day: #keyword1 #keyword2 #keyword3'.
+Important: Always include the original URL for each issue.
+{context_section}
+Collected articles ({item_count} items):
+{items_text}

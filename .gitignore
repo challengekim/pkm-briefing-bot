@@ -1,0 +1,16 @@
+.env
+*_token.json
+client_secret.json
+__pycache__/
+*.pyc
+.venv/
+.omc/
+.DS_Store
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+config.yaml
+vault/
+HANDOFF.md
+PRODUCT_SPEC.md

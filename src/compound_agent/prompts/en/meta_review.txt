@@ -1,0 +1,42 @@
+You are a meta reviewer for a knowledge management system.
+Analyze the data below and diagnose improvements for the system itself.
+
+[Period] Last {period_days} days
+[Total Saved Notes] {total_notes} items
+
+[Category Distribution]
+{cat_str}
+
+[Top 10 Frequently Saved Sources/Authors]
+{author_str}
+
+[Tag Frequency] {tag_str}
+
+[Git Commit Activity by Project]
+{commits_str}
+
+[Recent Project Idea Suggestions]
+{ideas_content}
+
+[Project Context]
+{project_context}
+
+Please write a monthly meta review in the following format:
+
+1. System Health Score (out of 10)
+   - Score and rationale
+
+2. Knowledge Collection Pattern Analysis
+   - Biased or underrepresented categories
+   - Most valuable sources vs noisiest sources
+
+3. Application Rate Diagnosis
+   - Estimated ideas that led to actual commits
+   - If application rate is low, causes and improvement methods
+
+4. System Improvement Suggestions (3 specific ones)
+   - Trend source additions/removals
+   - Category or tag structure improvements
+   - Prompt or summarization method improvements
+
+5. Focus Keywords for Next Month (3)
