@@ -11,9 +11,11 @@ class TestHandsSendSkipNotification:
             pass
 
     def _make_hands(self):
-        """Build a Hands instance with telegram mocked at the instance level."""
+        """Build a Hands instance with channel mocked at the instance level."""
         from compound_agent.hands import Hands
-        h = Hands(self.config)
+        mock_channel = MagicMock()
+        mock_channel.send_plain.return_value = True
+        h = Hands(self.config, channel=mock_channel)
         h._telegram = MagicMock()
         return h
 
@@ -21,22 +23,22 @@ class TestHandsSendSkipNotification:
         """send_skip_notification with no_new_notes sends a Korean message."""
         h = self._make_hands()
         h.send_skip_notification("no_new_notes")
-        h._telegram.send_message.assert_called_once()
-        msg = h._telegram.send_message.call_args[0][0]
+        h.channel.send_plain.assert_called_once()
+        msg = h.channel.send_plain.call_args[0][0]
         assert "노트" in msg or "지식" in msg
 
     def test_send_skip_notification_consecutive_failures_includes_details(self):
         """consecutive_failures reason embeds the details string in the message."""
         h = self._make_hands()
         h.send_skip_notification("consecutive_failures", details="트렌드 다이제스트")
-        msg = h._telegram.send_message.call_args[0][0]
+        msg = h.channel.send_plain.call_args[0][0]
         assert "트렌드 다이제스트" in msg
 
     def test_send_skip_notification_unknown_reason_sends_fallback_message(self):
         """Unknown reason sends a generic fallback message containing the reason."""
         h = self._make_hands()
         h.send_skip_notification("some_unknown_reason")
-        msg = h._telegram.send_message.call_args[0][0]
+        msg = h.channel.send_plain.call_args[0][0]
         assert "some_unknown_reason" in msg
 
     def test_send_skip_notification_returns_success_dict(self):
@@ -50,8 +52,8 @@ class TestHandsSendSkipNotification:
         """no_trends reason sends a relevant Korean message."""
         h = self._make_hands()
         h.send_skip_notification("no_trends")
-        h._telegram.send_message.assert_called_once()
-        msg = h._telegram.send_message.call_args[0][0]
+        h.channel.send_plain.assert_called_once()
+        msg = h.channel.send_plain.call_args[0][0]
         assert len(msg) > 0
 
 

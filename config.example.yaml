@@ -92,15 +92,19 @@ agent:
   # evolution_log_path: ~/.compound-brain/evolution-log.json
   # variants_path: ~/.compound-brain/prompts/variants
 
-# Multi-Agent System (Phase D)
+# Multi-Agent System (Phase D+)
 # agent:
 #   mode: multi-agent
 #   agents:
-#     researcher: true
-#     curator: false    # Coming in Phase 2
-#     analyst: true
-#     writer: false     # Coming in Phase 2
+#     researcher: true    # Trend fetching & filtering
+#     analyst: true       # Cross-week pattern analysis
+#     curator: false      # Vault note quality, connections, archival
+#     writer: false       # Action plans & summaries from notes
 #   orchestrator:
 #     max_cycles_per_day: 8
 #     max_llm_calls_per_cycle: 6
 #     planning_mode: llm  # 'llm' or 'rules'
+#
+# Notification channel (default: telegram)
+# notifications:
+#   channel: telegram     # telegram | log

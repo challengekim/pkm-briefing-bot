@@ -25,6 +25,8 @@ def create_default_registry(config, summarizer, memory=None) -> AgentRegistry:
     """Create registry with built-in agents filtered by config."""
     from .researcher import ResearcherAgent
     from .analyst import AnalystAgent
+    from .curator import CuratorAgent
+    from .writer import WriterAgent
 
     registry = AgentRegistry()
     agents_config = getattr(config, "agents_config", {})
@@ -33,6 +35,10 @@ def create_default_registry(config, summarizer, memory=None) -> AgentRegistry:
         registry.register(ResearcherAgent(config, summarizer, memory))
     if agents_config.get("analyst", True):
         registry.register(AnalystAgent(config, summarizer, memory))
+    if agents_config.get("curator", False):
+        registry.register(CuratorAgent(config, summarizer, memory))
+    if agents_config.get("writer", False):
+        registry.register(WriterAgent(config, summarizer, memory))
 
     return registry
 

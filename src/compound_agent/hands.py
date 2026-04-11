@@ -13,9 +13,10 @@ KST = ZoneInfo("Asia/Seoul")
 
 
 class Hands:
-    def __init__(self, config, memory=None):
+    def __init__(self, config, memory=None, channel=None):
         self.config = config
         self.memory = memory
+        self._channel = channel
         self._summarizer = None
         self._telegram = None
         self._email_sender = None
@@ -32,6 +33,13 @@ class Hands:
             from .summarizer import Summarizer
             self._summarizer = Summarizer(config=self.config, lang=self.config.language)
         return self._summarizer
+
+    @property
+    def channel(self):
+        if self._channel is None:
+            from .notifications import create_channel
+            self._channel = create_channel(self.config)
+        return self._channel
 
     @property
     def telegram(self):
@@ -72,25 +80,11 @@ class Hands:
     # ------------------------------------------------------------------
 
     def _send_briefing(self, message: str, briefing_type: str):
-        """Send a briefing message. In proactive/self-improving mode, includes buttons.
+        """Send a briefing via the notification channel.
 
-        Returns message_id (int) if engagement buttons were added, else None.
+        Returns message_id (int) if the channel supports it, else None.
         """
-        if self.config.agent_mode in ("proactive", "self-improving"):
-            # Check for active prompt experiment (self-improving mode)
-            has_experiment = False
-            if self.config.agent_mode == "self-improving":
-                from .evolution import Evolution
-                if self.memory:
-                    evo = Evolution(self.config, self.memory)
-                    has_experiment = evo.get_active_prompt(briefing_type) is not None
-
-            if has_experiment:
-                return self.telegram.send_message_with_rating(message, briefing_type)
-            return self.telegram.send_message_with_engagement(message, briefing_type)
-        else:
-            self.telegram.send_message(message)
-            return None
+        return self.channel.send_briefing(message, briefing_type, self.config.agent_mode)
 
     # ------------------------------------------------------------------
     # Pipeline wrappers
@@ -542,7 +536,7 @@ class Hands:
             if details and reason != "consecutive_failures":
                 message += f"\n\n상세: {details}"
 
-            self.telegram.send_message(message)
+            self.channel.send_plain(message)
             return {"success": True, "reason": reason}
         except Exception as e:
             logger.error(f"send_skip_notification failed: {e}")

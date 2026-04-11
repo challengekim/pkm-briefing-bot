@@ -462,8 +462,44 @@ def main():
         briefing_type = None
 
     if briefing_type:
-        handler = _BRIEFING_TYPES.get(briefing_type, process_morning)
-        handler()
+        config = Config()
+        if config.agent_mode == "multi-agent":
+            # Route through Orchestrator for multi-agent mode
+            from .memory import AgentMemory
+            from .session.event_log import EventLog
+            from .agents import create_default_registry
+            from .agents.orchestrator import Orchestrator
+
+            memory = AgentMemory(
+                memory_path=config.agent_memory_path,
+                ema_alpha=config.agent_ema_alpha,
+                min_reading_samples=config.agent_min_reading_samples,
+            )
+            summarizer_instance = Summarizer(config=config, lang=config.language)
+            hands = Hands(config, memory=memory)
+            event_log = EventLog(config.event_log_path)
+            registry = create_default_registry(config, summarizer_instance, memory)
+            orchestrator = Orchestrator(config, memory, event_log, registry, hands, summarizer_instance)
+            results = orchestrator.run_cycle(scheduled_action=briefing_type)
+            logger.info("--test multi-agent: %d results from orchestrator", len(results))
+        elif config.agent_mode != "disabled":
+            # Route through Brain for reactive/proactive/self-improving modes
+            state = AgentState(config.agent_state_path)
+            memory = None
+            if config.agent_mode in ("proactive", "self-improving"):
+                from .memory import AgentMemory
+                memory = AgentMemory(
+                    memory_path=config.agent_memory_path,
+                    ema_alpha=config.agent_ema_alpha,
+                    min_reading_samples=config.agent_min_reading_samples,
+                )
+            hands = Hands(config, memory=memory)
+            brain = Brain(config, state, hands, memory=memory)
+            results = brain.tick(scheduled_action=briefing_type)
+            logger.info("--test brain: %s", results)
+        else:
+            handler = _BRIEFING_TYPES.get(briefing_type, process_morning)
+            handler()
         return
 
     global KST
