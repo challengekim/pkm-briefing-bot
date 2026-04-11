@@ -55,10 +55,14 @@ class Config:
         self.trend_reddit_limit = trends.get("reddit_limit", 8)
         self.trend_geeknews_limit = trends.get("geeknews_limit", 10)
 
-        # Schedule
+        # Schedule (merge with hardcoded defaults so missing entries still run)
         schedule = cfg.get("schedule", {})
         self.schedule_timezone = schedule.get("timezone", "Asia/Seoul")
-        self.schedule = self._parse_schedules(schedule)
+        parsed = self._parse_schedules(schedule)
+        defaults = self._default_schedules()
+        self.schedule = {**defaults, **parsed}
+        if not parsed:
+            logger.info("No schedule in config — using built-in defaults")
 
     def _load_yaml(self, path):
         path = Path(path)
@@ -95,6 +99,16 @@ class Config:
                 continue
             result[key] = self._parse_schedule_entry(value)
         return result
+
+    @staticmethod
+    def _default_schedules():
+        """Fallback schedules matching config.example.yaml defaults."""
+        return {
+            "trend": {"hour": 10, "minute": 0},
+            "linkedin": {"hour": 11, "minute": 30},
+            "knowledge": {"day_of_week": "sat", "hour": 10, "minute": 0},
+            "meta": {"day": 1, "hour": 11, "minute": 0},
+        }
 
     @staticmethod
     def _parse_schedule_entry(value):

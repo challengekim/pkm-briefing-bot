@@ -186,6 +186,15 @@ Your `config.yaml`, `.env`, and vault stay untouched.
 
 ---
 
+## Changelog
+
+### v0.2.1 (2026-04-11)
+
+- **Fix**: Schedules now work without `config.yaml`. Previously, if `config.yaml` was missing or had no `schedule:` section, no briefings would run. Now falls back to built-in defaults (trend 10:00, linkedin 11:30, knowledge sat 10:00, meta 1st 11:00).
+- **Fix**: Partial `schedule:` sections now merge with defaults. Setting only `trend: "14:00"` keeps the other 3 briefings on their default times instead of silently dropping them.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Questions? [Open an issue](https://github.com/challengekim/compound-brain/issues) or email kimtaewoo1201@gmail.com.

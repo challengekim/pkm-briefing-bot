@@ -182,6 +182,15 @@ pip install -r requirements.txt    # 의존성 변경 시에만
 
 ---
 
+## 변경 이력
+
+### v0.2.1 (2026-04-11)
+
+- **수정**: `config.yaml` 없이도 스케줄 정상 동작. 기존에는 `config.yaml`이 없거나 `schedule:` 섹션이 비어 있으면 브리핑이 하나도 실행되지 않았음. 이제 기본값으로 자동 실행 (trend 10:00, linkedin 11:30, knowledge 토 10:00, meta 매월 1일 11:00).
+- **수정**: `schedule:` 일부만 설정해도 나머지가 기본값으로 유지됨. `trend: "14:00"`만 쓰면 나머지 3개가 기본 시간에 실행.
+
+---
+
 ## 기여
 
 [CONTRIBUTING.md](CONTRIBUTING.md) 참조. 문의: [Issues](https://github.com/challengekim/compound-brain/issues) 또는 kimtaewoo1201@gmail.com
