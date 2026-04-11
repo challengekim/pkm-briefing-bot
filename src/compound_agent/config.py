@@ -89,6 +89,7 @@ class Config:
             notifications.get("email_to", "")
             or os.getenv("KNOWLEDGE_EMAIL_TO", "")
         )
+        self.notification_channel = notifications.get("channel", "telegram")
 
         # Trends
         trends = cfg.get("trends", {})

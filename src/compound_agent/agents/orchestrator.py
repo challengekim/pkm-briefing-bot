@@ -2,7 +2,6 @@
 import json
 import logging
 import re
-import threading
 
 import jsonschema
 
@@ -22,7 +21,7 @@ PLAN_SCHEMA = {
         "properties": {
             "agent": {"type": "string"},
             "task": {"type": "object", "required": ["type"]},
-            "depends_on": {"type": "integer"},
+            "depends_on": {"type": "integer", "minimum": 0},
         },
     },
 }

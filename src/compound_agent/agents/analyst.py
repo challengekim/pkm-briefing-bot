@@ -2,7 +2,7 @@
 import logging
 import time
 
-from .base import BaseAgent, AgentResult
+from .base import BaseAgent, AgentResult, _sanitize
 from ..knowledge_scanner import load_previous_weekly_reports, scan_recent_notes
 from ..trend_fetcher import fetch_all_trends
 
@@ -52,7 +52,7 @@ class AnalystAgent(BaseAgent):
         reports = load_previous_weekly_reports(self.config.vault_path, weeks=period_weeks)
         recent_notes = scan_recent_notes(self.config, days=period_weeks * 7)
 
-        note_titles = "\n".join(f"- {n['title']}" for n in recent_notes[:20])
+        note_titles = "\n".join(f"- {_sanitize(n['title'])}" for n in recent_notes[:20])
         prompt = (
             f"Previous {period_weeks} weeks of reports:\n{reports or '(none)'}\n\n"
             f"Recent saved notes:\n{note_titles or '(none)'}\n\n"
@@ -79,7 +79,7 @@ class AnalystAgent(BaseAgent):
         by_category: dict[str, list[str]] = {}
         for note in notes:
             cat = note.get("category", "unknown")
-            by_category.setdefault(cat, []).append(note["title"])
+            by_category.setdefault(cat, []).append(_sanitize(note["title"]))
 
         categories_str = "\n".join(
             f"{cat}: {', '.join(titles[:5])}"
@@ -105,8 +105,8 @@ class AnalystAgent(BaseAgent):
         notes = scan_recent_notes(self.config, days=30)
         trends = fetch_all_trends(self.config)
 
-        user_topics = " ".join(n["title"] for n in notes[:30])
-        trend_titles = "\n".join(f"- {t['title']}" for t in trends[:30])
+        user_topics = " ".join(_sanitize(n["title"]) for n in notes[:30])
+        trend_titles = "\n".join(f"- {_sanitize(t['title'])}" for t in trends[:30])
 
         prompt = (
             f"User's recent reading (last 30 days):\n{user_topics or '(none)'}\n\n"
