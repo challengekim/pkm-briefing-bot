@@ -55,6 +55,16 @@ class Config:
         self.trend_reddit_limit = trends.get("reddit_limit", 8)
         self.trend_geeknews_limit = trends.get("geeknews_limit", 10)
 
+        # Agent / GBrain settings
+        agent_cfg = cfg.get("agent", {})
+        self.agent_mode = os.environ.get("AGENT_MODE") or agent_cfg.get("mode", "disabled")
+        self.dream_cycle = agent_cfg.get("dream_cycle", True)
+        self.dream_hour = agent_cfg.get("dream_hour", 3)
+        self.thought_capture = agent_cfg.get("thought_capture", True)
+        self.intent_classification = agent_cfg.get("intent_classification", True)
+        self.entity_detection = agent_cfg.get("entity_detection", True)
+        self.brain_first = agent_cfg.get("brain_first", True)
+
         # Schedule (merge with hardcoded defaults so missing entries still run)
         schedule = cfg.get("schedule", {})
         self.schedule_timezone = schedule.get("timezone", "Asia/Seoul")

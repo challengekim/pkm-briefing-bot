@@ -1,0 +1,12 @@
+Classify the intent of the user's message.
+
+Message: {message}
+
+Classify into one of the following and respond with JSON:
+- "save_thought": recording an idea, memo, thought, or insight (e.g. "need to structure the RAG pipeline", "idea from today's meeting...")
+- "query": a question, search, or information request (e.g. "what AI articles did I save last week?", "what is compound learning?")
+- "command": a command (e.g. "/status", "/report", "show me status", "give me a report")
+- "casual": greeting, small talk, meaningless message (e.g. "hi", "lol", "ok")
+
+Response format (JSON only, no other text):
+{{"intent": "save_thought", "confidence": 0.9, "topic": "extracted core topic"}}

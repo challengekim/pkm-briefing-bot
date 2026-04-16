@@ -276,11 +276,58 @@ def _validate_url(url):
                 raise ValueError(f"URL resolves to blocked network: {ip}")
 
 
-def save_url_to_vault(url, vault_path, scan_paths, summarizer=None):
-    """Save a URL to the vault as a markdown file with frontmatter.
+def _sanitize_frontmatter(value):
+    """Escape quotes, newlines, and leading --- in YAML frontmatter values."""
+    if not isinstance(value, str):
+        value = str(value)
+    # Remove leading/trailing whitespace and newlines
+    value = value.strip()
+    # Replace newlines with space
+    value = re.sub(r'[\r\n]+', ' ', value)
+    # Escape double quotes
+    value = value.replace('"', '\\"')
+    # If value starts with ---, prefix with a space to avoid YAML doc separator
+    if value.startswith('---'):
+        value = ' ' + value
+    return value
+
+
+def _extract_entities(title, body_text, summarizer):
+    """Extract people, companies and concepts via LLM. Returns frontmatter string."""
+    if not summarizer:
+        return ""
+    try:
+        prompt = summarizer._load_prompt("entity_extract").format(
+            title=title,
+            content=body_text[:3000],
+        )
+        result = summarizer._generate(prompt)
+        # Strip markdown code fences if present
+        result = re.sub(r'^```(?:json)?\s*', '', result.strip())
+        result = re.sub(r'\s*```$', '', result)
+        import json
+        data = json.loads(result)
+        # Validate schema — each key must be list of strings
+        entities = []
+        for prefix, key in [("person", "people"), ("company", "companies"), ("concept", "concepts")]:
+            items = data.get(key, [])
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if isinstance(item, str) and item.strip():
+                    entities.append(f"{prefix}:{item.strip()}")
+        if entities:
+            return f"entities: [{', '.join(entities)}]"
+    except Exception as e:
+        logger.debug(f"Entity extraction failed: {e}")
+    return ""
+
+
+def save_url_to_vault(url, vault_path, scan_paths, summarizer=None, enrich=False):
+    """Save a URL to the vault as a markdown file with Compiled Truth format.
 
     Uses requests + beautifulsoup4 to extract content.
-    Optionally uses summarizer for AI-generated description.
+    Optionally uses summarizer for AI-generated enrichment (enrich=True).
     """
     _validate_url(url)
 
@@ -325,6 +372,9 @@ def save_url_to_vault(url, vault_path, scan_paths, summarizer=None):
     # Generate tags
     tags = _detect_tags(domain, title, category)
 
+    # Entity detection (when summarizer available)
+    entities_line = _extract_entities(title, body_text, summarizer) if summarizer else ""
+
     # Build filename
     safe_title = re.sub(r'[<>:"/\\|?*]', '', title)[:60].strip()
     filename = f"{safe_title}.md"
@@ -343,21 +393,70 @@ def save_url_to_vault(url, vault_path, scan_paths, summarizer=None):
     os.makedirs(save_dir, exist_ok=True)
     filepath = os.path.join(save_dir, filename)
 
+    # Build Compiled Truth section (enrich mode or when summarizer available)
+    compiled_truth = ""
+    key_takeaways = []
+    if summarizer and enrich:
+        try:
+            import json
+            enrich_prompt = summarizer._load_prompt("dream_enrich").format(
+                title=title,
+                category=category,
+                description=_sanitize_frontmatter(description),
+                content=body_text[:4000],
+            )
+            enrich_result = summarizer._generate(enrich_prompt)
+            enrich_result = re.sub(r'^```(?:json)?\s*', '', enrich_result.strip())
+            enrich_result = re.sub(r'\s*```$', '', enrich_result)
+            enrich_data = json.loads(enrich_result)
+            compiled_truth = enrich_data.get("compiled_truth", "")
+            key_takeaways = enrich_data.get("key_takeaways", [])
+            if isinstance(key_takeaways, list):
+                key_takeaways = [str(t) for t in key_takeaways if t]
+        except Exception as e:
+            logger.debug(f"Enrich failed, using description: {e}")
+
     # Write file
     now = datetime.now(KST)
     tags_str = ", ".join(tags)
+
+    # Build frontmatter
+    fm_lines = [
+        "---",
+        f"source: {url}",
+        f'title: "{_sanitize_frontmatter(title)}"',
+        f'description: "{_sanitize_frontmatter(description)}"',
+        f"saved: {now.strftime('%Y-%m-%d')}",
+        "type: article",
+        f"tags: [{tags_str}]",
+    ]
+    if entities_line:
+        fm_lines.append(entities_line)
+    fm_lines.append("status: pending")
+    fm_lines.append("---")
+    frontmatter = "\n".join(fm_lines)
+
+    # Build body sections
+    compiled_section = ""
+    if compiled_truth:
+        compiled_section = f"\n## Compiled Truth\n\n{compiled_truth}\n"
+        if key_takeaways:
+            items = "\n".join(f"- {t}" for t in key_takeaways)
+            compiled_section += f"\n## Key Takeaways\n\n{items}\n"
+        compiled_section += "\n---\n"
+
+    timeline_section = (
+        f"\n## Timeline\n\n"
+        f"- {now.strftime('%Y-%m-%d')}: Saved from {domain} via Telegram\n"
+    )
+
     content = (
-        f"---\n"
-        f"source: {url}\n"
-        f"title: \"{title}\"\n"
-        f"description: \"{description}\"\n"
-        f"saved: {now.strftime('%Y-%m-%d')}\n"
-        f"type: article\n"
-        f"tags: [{tags_str}]\n"
-        f"status: pending\n"
-        f"---\n\n"
-        f"# {title}\n\n"
-        f"> Source: {url}\n\n"
+        f"{frontmatter}\n\n"
+        f"# {title}\n"
+        f"{compiled_section}"
+        f"{timeline_section}"
+        f"\n## Source Content\n\n"
+        f"> {url}\n\n"
         f"{body_text}\n"
     )
 
@@ -366,6 +465,94 @@ def save_url_to_vault(url, vault_path, scan_paths, summarizer=None):
 
     logger.info(f"Saved: {filepath}")
     return {"title": title, "path": filepath, "category": category}
+
+
+def save_thought_to_vault(text, vault_path, summarizer=None):
+    """Save a plain-text thought/idea from Telegram to vault.
+
+    Path: 00_Inbox/Thoughts/
+    Filename: YYYY-MM-DD_thought_{short_slug}.md
+    """
+    now = datetime.now(KST)
+    date_str = now.strftime("%Y-%m-%d")
+
+    # Build short slug from first meaningful words
+    slug_source = re.sub(r'[^\w\s가-힣]', '', text)[:40].strip()
+    slug = re.sub(r'\s+', '_', slug_source)[:30].lower()
+    slug = re.sub(r'[^a-z0-9_가-힣]', '', slug) or "note"
+    filename = f"{date_str}_thought_{slug}.md"
+
+    save_dir = os.path.join(vault_path, "00_Inbox", "Thoughts")
+    os.makedirs(save_dir, exist_ok=True)
+    filepath = os.path.join(save_dir, filename)
+
+    # Generate Compiled Truth via summarizer
+    compiled_truth = ""
+    key_takeaways = []
+    category = "personal"
+    tags = ["thought", "inbox"]
+
+    if summarizer:
+        try:
+            import json
+            prompt = summarizer._load_prompt("thought_capture").format(message=text)
+            result = summarizer._generate(prompt)
+            result = re.sub(r'^```(?:json)?\s*', '', result.strip())
+            result = re.sub(r'\s*```$', '', result)
+            data = json.loads(result)
+            compiled_truth = data.get("compiled_truth", "")
+            category = data.get("category", "personal")
+            raw_tags = data.get("tags", [])
+            if isinstance(raw_tags, list):
+                tags = [str(t) for t in raw_tags if t]
+        except Exception as e:
+            logger.debug(f"Thought capture LLM failed: {e}")
+
+    # Entity detection
+    entities_line = _extract_entities("", text, summarizer) if summarizer else ""
+
+    tags_str = ", ".join(tags)
+    fm_lines = [
+        "---",
+        "source: telegram",
+        f'title: "{_sanitize_frontmatter(text[:80])}"',
+        f"saved: {date_str}",
+        "type: thought",
+        f"tags: [{tags_str}]",
+    ]
+    if entities_line:
+        fm_lines.append(entities_line)
+    fm_lines.append("status: pending")
+    fm_lines.append("---")
+    frontmatter = "\n".join(fm_lines)
+
+    compiled_section = ""
+    if compiled_truth:
+        compiled_section = f"\n## Compiled Truth\n\n{compiled_truth}\n"
+        if key_takeaways:
+            items = "\n".join(f"- {t}" for t in key_takeaways)
+            compiled_section += f"\n## Key Takeaways\n\n{items}\n"
+        compiled_section += "\n---\n"
+
+    timeline_section = (
+        f"\n## Timeline\n\n"
+        f"- {date_str}: Captured from Telegram\n"
+    )
+
+    content = (
+        f"{frontmatter}\n\n"
+        f"# {text[:80]}\n"
+        f"{compiled_section}"
+        f"{timeline_section}"
+        f"\n## Original Message\n\n"
+        f"{text}\n"
+    )
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    logger.info(f"Thought saved: {filepath}")
+    return {"title": text[:60], "path": filepath, "category": category}
 
 
 def _detect_category(domain, title, body):

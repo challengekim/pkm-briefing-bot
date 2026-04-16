@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -11,7 +12,7 @@ from core import (
     Summarizer, TelegramSender, URL_RE,
     scan_recent_notes, scan_all_notes, save_project_ideas,
     save_weekly_report, load_previous_weekly_reports,
-    analyze_tag_connections, save_url_to_vault,
+    analyze_tag_connections, save_url_to_vault, save_thought_to_vault,
     compose_trend_digest, compose_weekly_knowledge,
     compose_linkedin_draft, compose_meta_review_telegram, escape_html,
     collect_monthly_stats, fetch_all_trends,
@@ -52,7 +53,18 @@ def process_trend_digest():
         src = item["source"]
         source_counts[src] = source_counts.get(src, 0) + 1
 
-    trend_summary = summarizer.summarize_trend_digest(items, config.project_context)
+    # Brain-first: enrich trend digest with vault topics
+    project_context = config.project_context
+    if config.brain_first and config.vault_path:
+        try:
+            vault_notes = scan_recent_notes(config, days=14)
+            if vault_notes:
+                topics = ", ".join(n["title"] for n in vault_notes[:10])
+                project_context = (project_context + f"\n\n[Vault Topics]\n{topics}").strip()
+        except Exception as e:
+            logger.warning(f"Brain-first vault scan failed (continuing): {e}")
+
+    trend_summary = summarizer.summarize_trend_digest(items, project_context)
 
     # Translate English titles to Korean
     translations = summarizer.translate_titles(items)
@@ -204,9 +216,83 @@ def process_meta_review():
 
 _last_update_id = 0
 
+_COMMAND_KEYWORDS = {
+    "상태": "status", "status": "status",
+    "리포트": "report", "report": "report",
+    "도움말": "help", "help": "help",
+    "트렌드": "trend", "trend": "trend",
+}
+
+
+def _classify_intent(text, summarizer):
+    """Classify message intent using LLM with heuristic fallback."""
+    if len(text.strip()) < 30:
+        return {"intent": "casual", "confidence": 0.8, "topic": ""}
+    return summarizer.classify_intent(text)
+
+
+def _handle_text(text, config, summarizer, telegram):
+    """Handle a non-URL Telegram message based on classified intent."""
+    # Command detection (keyword-based, fast path)
+    text_lower = text.lower().strip()
+    for keyword, cmd in _COMMAND_KEYWORDS.items():
+        if keyword in text_lower:
+            if cmd == "status":
+                telegram.send_message("✓ PKM Bot 정상 동작 중")
+            elif cmd == "report":
+                telegram.send_message("리포트 생성 중...")
+                process_weekly_knowledge()
+            elif cmd == "help":
+                telegram.send_message(
+                    "<b>PKM Bot 명령어</b>\n"
+                    "• URL 전송 → 노트 저장\n"
+                    "• 아이디어/메모 → 생각 저장\n"
+                    "• 상태 → 봇 상태 확인\n"
+                    "• 리포트 → 주간 리포트\n"
+                    "• 트렌드 → 트렌드 다이제스트\n"
+                    "• 도움말 → 이 메시지"
+                )
+            elif cmd == "trend":
+                telegram.send_message("트렌드 수집 중...")
+                process_trend_digest()
+            return
+
+    # Intent classification
+    intent_data = _classify_intent(text, summarizer)
+    intent = intent_data.get("intent", "casual")
+
+    if intent == "save_thought" and config.thought_capture:
+        try:
+            result = save_thought_to_vault(text, config.vault_path, summarizer)
+            telegram.send_message(
+                f"✓ 생각 저장됨\n"
+                f"→ {result['category']}\n"
+                f"<code>{os.path.basename(result['path'])}</code>"
+            )
+            logger.info(f"Thought saved: {text[:40]}")
+        except Exception as e:
+            telegram.send_message(f"✗ 저장 실패: {str(e)[:100]}")
+            logger.error(f"Thought save failed: {e}")
+
+    elif intent == "query":
+        try:
+            notes = scan_recent_notes(config, days=30)
+            answer = summarizer.answer_vault_query(text, notes)
+            telegram.send_message(f"<b>검색 결과</b>\n\n{answer}")
+            logger.info(f"Query answered: {text[:40]}")
+        except Exception as e:
+            telegram.send_message(f"✗ 검색 실패: {str(e)[:100]}")
+            logger.error(f"Query failed: {e}")
+
+    elif intent == "casual":
+        logger.debug(f"Casual message ignored: {text[:40]}")
+
+    else:
+        logger.debug(f"Unknown intent '{intent}' for: {text[:40]}")
+
 
 def process_telegram_saves():
-    """Check Telegram for incoming URLs and save them to vault."""
+    """Check Telegram for incoming messages and handle URLs or text via intent resolver."""
     global _last_update_id
     config = Config()
     if not config.telegram_bot_token or not config.vault_path:
@@ -214,6 +300,8 @@ def process_telegram_saves():
 
     telegram = TelegramSender(config.telegram_bot_token, config.telegram_chat_id)
     updates = telegram.get_updates(offset=_last_update_id + 1 if _last_update_id else None)
+
+    summarizer = None
 
     for update in updates:
         _last_update_id = update["update_id"]
@@ -225,23 +313,154 @@ def process_telegram_saves():
         if chat_id != config.telegram_chat_id:
             continue
 
-        # Extract URLs from message
-        urls = URL_RE.findall(text)
-        if not urls:
+        if not text:
             continue
 
-        for url in urls[:3]:  # max 3 per message
-            try:
-                result = save_url_to_vault(url, config.vault_path, config.knowledge_scan_paths)
-                telegram.send_message(
-                    f"✓ <b>{result['title'][:60]}</b>\n"
-                    f"→ {result['category']}\n"
-                    f"<code>{os.path.basename(result['path'])}</code>",
-                )
-                logger.info(f"Telegram save: {result['title'][:40]}")
-            except Exception as e:
-                telegram.send_message(f"✗ Save failed: {str(e)[:100]}")
-                logger.error(f"Telegram save failed for {url}: {e}")
+        # Extract URLs from message
+        urls = URL_RE.findall(text)
+        if urls:
+            for url in urls[:3]:  # max 3 per message
+                try:
+                    result = save_url_to_vault(url, config.vault_path, config.knowledge_scan_paths)
+                    telegram.send_message(
+                        f"✓ <b>{result['title'][:60]}</b>\n"
+                        f"→ {result['category']}\n"
+                        f"<code>{os.path.basename(result['path'])}</code>",
+                    )
+                    logger.info(f"Telegram save: {result['title'][:40]}")
+                except Exception as e:
+                    telegram.send_message(f"✗ Save failed: {str(e)[:100]}")
+                    logger.error(f"Telegram save failed for {url}: {e}")
+        elif config.intent_classification:
+            # Lazy-init summarizer only when needed
+            if summarizer is None:
+                try:
+                    summarizer = Summarizer(config=config, lang=config.language)
+                except Exception as e:
+                    logger.warning(f"Summarizer init failed: {e}")
+                    continue
+            _handle_text(text, config, summarizer, telegram)
+
+
+def _find_note_path(config, note):
+    """Locate a note's file path by scanning vault directories."""
+    vault = config.vault_path
+    title = note.get("title", "")
+    for scan_path in config.knowledge_scan_paths:
+        full_path = os.path.join(vault, scan_path)
+        if not os.path.isdir(full_path):
+            continue
+        for filename in os.listdir(full_path):
+            if not filename.endswith(".md"):
+                continue
+            note_title = filename[:-3]
+            if note_title == title or note_title.startswith(title[:30]):
+                return os.path.join(full_path, filename)
+    # Also check Thoughts directory
+    thoughts_dir = os.path.join(vault, "00_Inbox", "Thoughts")
+    if os.path.isdir(thoughts_dir):
+        for filename in os.listdir(thoughts_dir):
+            if filename.endswith(".md") and title[:30] in filename:
+                return os.path.join(thoughts_dir, filename)
+    return None
+
+
+def process_dream_cycle():
+    """Dream cycle: enrich recent notes with Compiled Truth and send morning summary."""
+    config = Config()
+    if not config.dream_cycle:
+        return
+    if not config.vault_path:
+        logger.info("Dream cycle skipped — no vault_path configured")
+        return
+
+    summarizer = Summarizer(config=config, lang=config.language)
+    telegram = TelegramSender(config.telegram_bot_token, config.telegram_chat_id)
+
+    notes = scan_recent_notes(config, days=1)
+    enriched_count = 0
+    entity_map = {}  # entity -> list of note titles
+
+    for note in notes:
+        note_path = note.get("_filepath") or _find_note_path(config, note)
+        if not note_path or not os.path.exists(note_path):
+            continue
+
+        try:
+            with open(note_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            continue
+
+        # Skip notes that already have Compiled Truth
+        if "## Compiled Truth" in content:
+            continue
+
+        # Extract frontmatter + body
+        fm_match = re.match(r'^---\n(.*?\n)---\n', content, re.DOTALL)
+        if not fm_match:
+            continue
+
+        fm_text = fm_match.group(1)
+        body = content[fm_match.end():]
+
+        # Extract title/category/description from frontmatter
+        title = note.get("title", "")
+        category = note.get("category", "")
+        description = note.get("description", "")
+
+        try:
+            enrich_data = summarizer.enrich_note(title, category, description, body[:4000])
+            compiled_truth = enrich_data.get("compiled_truth", "")
+            key_takeaways = enrich_data.get("key_takeaways", [])
+        except Exception as e:
+            logger.debug(f"Enrich failed for {title}: {e}")
+            continue
+
+        if not compiled_truth:
+            continue
+
+        # Build Compiled Truth section to prepend to body
+        ct_section = f"## Compiled Truth\n\n{compiled_truth}\n"
+        if key_takeaways and isinstance(key_takeaways, list):
+            items_str = "\n".join(f"- {t}" for t in key_takeaways if t)
+            ct_section += f"\n## Key Takeaways\n\n{items_str}\n"
+        ct_section += "\n---\n\n"
+
+        new_content = f"---\n{fm_text}---\n{ct_section}{body}"
+
+        try:
+            with open(note_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            enriched_count += 1
+            logger.info(f"Dream enriched: {title}")
+        except Exception as e:
+            logger.error(f"Write failed for {note_path}: {e}")
+            continue
+
+        # Collect entities for cross-reference
+        source_entities = note.get("entities", "")
+        if source_entities:
+            for entity in source_entities.split(","):
+                entity = entity.strip().strip("[]")
+                if entity:
+                    entity_map.setdefault(entity, []).append(title)
+
+    # Find cross-references (entities shared by 2+ notes)
+    cross_refs = [(e, titles) for e, titles in entity_map.items() if len(titles) >= 2]
+    cross_refs.sort(key=lambda x: len(x[1]), reverse=True)
+
+    if enriched_count > 0 or cross_refs:
+        lines = [f"<b>Dream Cycle 완료</b>"]
+        if enriched_count:
+            lines.append(f"• {enriched_count}개 노트 Compiled Truth 보강")
+        if cross_refs:
+            lines.append(f"• 교차 참조 {len(cross_refs)}개 발견")
+            for entity, titles in cross_refs[:3]:
+                lines.append(f"  - <i>{entity}</i>: {', '.join(titles[:3])}")
+        telegram.send_message("\n".join(lines))
+
+    logger.info(f"Dream cycle done: {enriched_count} notes enriched, {len(cross_refs)} cross-refs")
 
 
 _BRIEFING_TYPES = {
@@ -311,9 +530,14 @@ def main():
             scheduled_names.append(name)
     logger.info(f"Scheduled jobs: {', '.join(scheduled_names)} (tz={config.schedule_timezone})")
 
-    # Check for incoming Telegram URLs every 30 seconds
+    # Check for incoming Telegram messages every 30 seconds
     scheduler.add_job(process_telegram_saves, "interval", seconds=30, id="telegram_save")
     logger.info("Telegram save listener active (polling every 30s)")
+
+    # Dream cycle: nightly note enrichment
+    if config.dream_cycle:
+        scheduler.add_job(process_dream_cycle, "cron", hour=config.dream_hour, minute=0, id="dream_cycle")
+        logger.info(f"Dream cycle scheduled at {config.dream_hour:02d}:00")
 
     try:
         scheduler.start()
