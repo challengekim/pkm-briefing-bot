@@ -1,0 +1,13 @@
+Enrich the Compiled Truth (core summary) of the following note.
+
+Title: {title}
+Category: {category}
+Existing description: {description}
+Body excerpt: {content}
+
+Respond with:
+1. compiled_truth: 2-3 sentence core insight of this content
+2. key_takeaways: 2-3 key points (list)
+
+Response format (JSON only):
+{{"compiled_truth": "core insight summary", "key_takeaways": ["point1", "point2"]}}

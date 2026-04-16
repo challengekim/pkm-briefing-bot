@@ -1,0 +1,12 @@
+사용자의 텔레그램 메시지에서 원본 사고를 구조화하세요.
+
+원본 메시지: {message}
+
+다음 형식으로 정리하세요:
+
+1. 핵심 인사이트 (1-2문장으로 요약)
+2. 카테고리 (ai-eng, ai-tool, business, engineering, marketing, personal 중 택 1)
+3. 태그 (관련 키워드 3-5개, 콤마 구분)
+
+응답 형식 (JSON만):
+{{"compiled_truth": "핵심 인사이트 요약", "category": "카테고리", "tags": ["tag1", "tag2", "tag3"]}}

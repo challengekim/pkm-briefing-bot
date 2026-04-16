@@ -258,6 +258,79 @@ class Summarizer:
                     translations[english_items[idx]["title"]] = parts[1].strip()
         return translations
 
+    def classify_intent(self, text):
+        """Classify user message intent. Returns dict with 'intent', 'confidence', 'topic'."""
+        import json
+        import re as _re
+        try:
+            prompt = self._load_prompt("intent_classify").format(message=text)
+            result = self._generate(prompt)
+            result = _re.sub(r'^```(?:json)?\s*', '', result.strip())
+            result = _re.sub(r'\s*```$', '', result)
+            data = json.loads(result)
+            valid_intents = {"save_thought", "query", "command", "casual"}
+            if data.get("intent") in valid_intents:
+                return {
+                    "intent": data["intent"],
+                    "confidence": float(data.get("confidence", 0.5)),
+                    "topic": str(data.get("topic", ""))[:100],
+                }
+        except Exception as e:
+            logger.debug(f"Intent classification failed: {e}")
+        # Heuristic fallback
+        if len(text) < 30:
+            return {"intent": "casual", "confidence": 0.6, "topic": ""}
+        return {"intent": "save_thought", "confidence": 0.5, "topic": text[:50]}
+
+    def answer_vault_query(self, query, vault_notes):
+        """Answer a question using vault notes as context."""
+        notes_text = "\n".join(
+            f"- [{n.get('category', '')}] {n.get('title', '')}: {n.get('description', '')}"
+            for n in vault_notes[:20]
+        )
+        if self.lang == "ko":
+            prompt = (
+                f"다음 저장된 노트들을 참고하여 질문에 답하세요.\n\n"
+                f"질문: {query}\n\n"
+                f"참고 노트:\n{notes_text}\n\n"
+                f"간결하게 답하세요 (3-5문장)."
+            )
+        else:
+            prompt = (
+                f"Answer the question using the following saved notes as context.\n\n"
+                f"Question: {query}\n\n"
+                f"Notes:\n{notes_text}\n\n"
+                f"Answer concisely (3-5 sentences)."
+            )
+        return self._generate(prompt)
+
+    def enrich_note(self, title, category, description, content):
+        """Generate Compiled Truth enrichment for a note. Returns dict."""
+        import json
+        import re as _re
+        try:
+            prompt = self._load_prompt("dream_enrich").format(
+                title=title,
+                category=category,
+                description=description,
+                content=content[:4000],
+            )
+            result = self._generate(prompt)
+            result = _re.sub(r'^```(?:json)?\s*', '', result.strip())
+            result = _re.sub(r'\s*```$', '', result)
+            data = json.loads(result)
+            validated = {
+                "compiled_truth": str(data.get("compiled_truth", "")),
+                "key_takeaways": [
+                    str(t) for t in data.get("key_takeaways", [])
+                    if isinstance(t, (str, int, float)) and str(t).strip()
+                ],
+            }
+            return validated
+        except Exception as e:
+            logger.debug(f"Note enrichment failed: {e}")
+        return {}
+
     @staticmethod
     def _is_korean(text):
         korean_count = sum(1 for c in text if '\uac00' <= c <= '\ud7a3')

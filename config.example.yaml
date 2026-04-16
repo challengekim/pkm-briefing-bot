@@ -47,3 +47,13 @@ schedule:
   linkedin: "11:30"
   knowledge: "sat 10:00"
   meta: "1st 11:00"
+
+# GBrain agent settings
+agent:
+  mode: disabled          # disabled | passive | active
+  dream_cycle: true       # nightly note enrichment at dream_hour
+  dream_hour: 3           # hour (0-23) to run dream cycle
+  thought_capture: true   # save plain-text Telegram messages as thoughts
+  intent_classification: true  # classify message intent (URL vs thought vs query vs command)
+  entity_detection: true  # extract people/companies/concepts from notes
+  brain_first: true       # enrich trend digest with recent vault topics

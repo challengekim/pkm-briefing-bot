@@ -1,0 +1,12 @@
+Structure the original thought from the user's Telegram message.
+
+Original message: {message}
+
+Organize into the following format:
+
+1. Core insight (summarize in 1-2 sentences)
+2. Category (choose one: ai-eng, ai-tool, business, engineering, marketing, personal)
+3. Tags (3-5 related keywords, comma-separated)
+
+Response format (JSON only):
+{{"compiled_truth": "core insight summary", "category": "category", "tags": ["tag1", "tag2", "tag3"]}}

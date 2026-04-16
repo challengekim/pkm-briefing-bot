@@ -1,0 +1,7 @@
+Extract key entities (people, companies, concepts) from the following content.
+
+Title: {title}
+Content: {content}
+
+Response format (JSON only, no other text):
+{{"people": ["person name"], "companies": ["company name"], "concepts": ["technology/concept name"]}}
