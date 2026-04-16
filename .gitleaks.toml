@@ -1,0 +1,11 @@
+[extend]
+# Use default gitleaks config as base
+useDefault = true
+
+[allowlist]
+description = "Allow example/placeholder values"
+regexes = [
+  '''(?i)^your-.*-token$''',
+  '''(?i)^placeholder$''',
+  '''(?i)^example[-_]''',
+]
